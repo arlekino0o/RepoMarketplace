@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Моя Корзина</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 0 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f4f4f4; }
+        .qty-btn { padding: 5px 10px; cursor: pointer; }
+        .delete-btn { color: red; cursor: pointer; background: none; border: none; font-weight: bold; }
+        .cart-summary { text-align: right; margin-top: 20px; font-size: 1.2em; font-weight: bold; }
+        .checkout-section { display: flex; justify-content: flex-end; gap: 15px; margin-top: 20px; }
+        .btn { padding: 10px 20px; font-size: 1em; cursor: pointer; border-radius: 4px; border: none; }
+        .btn-clear { background-color: #f44336; color: white; }
+        .btn-checkout { background-color: #4CAF50; color: white; }
+        .guest-inputs { margin-top: 15px; display: flex; flex-direction: column; gap: 10px; max-width: 300px; }
+        .guest-inputs input { padding: 8px; font-size: 1em; }
+    </style>
+</head>
+<body>
+
+    <h1>Ваша корзина</h1>
+    <a href="{% url 'products:list' %}"><-Вернуться к покупкам</a>
+
+    <div id="cart-content">
+        <p>Загрузка корзины...</p>
+    </div>
+
+<script>
+    const cartContent = document.getElementById('cart-content');
+    const CART_API_URL = '/api/cart/';
+
+    async function loadCart() {
+        try {
+            const response = await fetch(CART_API_URL);
+            if (!response.ok) throw new Error('Не удалось загрузить данные корзины');
+
+            const cartData = await response.json();
+            renderCart(cartData);
+        } catch (error) {
+            console.error(error);
+            cartContent.innerHTML = '<p style="color: red;">Ошибка при загрузке корзины.</p>';
+        }
+    }
+
+    function renderCart(cartData) {
+        if (!cartData.items || cartData.items.length === 0) {
+            cartContent.innerHTML = '<h3>Ваша корзина пуста :(</h3>';
+            return;
+        }
+
+        let tableRows = '';
+        cartData.items.forEach(item => {
+            tableRows += `
+                <tr>
+                    <td>${item.product.name}</td>
+                    <td>${item.product.price} руб.</td>
+                    <td>
+                        <button class="qty-btn minus-btn" data-id="${item.product.id}">-</button>
+                        <span style="margin: 0 10px; font-weight: bold;">${item.quantity}</span>
+                        <button class="qty-btn plus-btn" data-id="${item.product.id}">+</button>
+                    </td>
+                    <td>${item.item_cost} руб.</td>
+                    <td>
+                        <button class="delete-btn" data-id="${item.product.id}">Удалить</button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        cartContent.innerHTML = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Товар</th>
+                        <th>Цена за шт.</th>
+                        <th>Количество</th>
+                        <th>Итого</th>
+                        <th>Действие</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${tableRows}
+                </tbody>
+            </table>
+
+            <div class="cart-summary">Общая стоимость: ${cartData.total_price} руб.</div>
+
+            <div class="guest-inputs" id="guest-form">
+                <h3>Контакты для оформления (для гостей)</h3>
+                <input type="email" id="guest-email" placeholder="Email" required>
+                <input type="tel" id="guest-phone" placeholder="Телефон" required>
+            </div>
+
+            <div class="checkout-section">
+                <button class="btn btn-clear" id="clear-cart-btn">Очистить корзину</button>
+                <button class="btn btn-checkout" id="checkout-btn">Оформить заказ</button>
+            </div>
+        `;
+
+        initCartActions(cartData);
+    }
+
+    function initCartActions(cartData) {
+
+        cartContent.addEventListener('click', async (event) => {
+            const target = event.target;
+            const productId = target.getAttribute('data-id');
+            const csrfToken = getCookie('csrftoken');
+
+            if (target.classList.contains('plus-btn') || target.classList.contains('minus-btn')) {
+                const currentItem = cartData.items.find(item => item.product.id == productId);
+                let newQty = currentItem.quantity;
+
+                if (target.classList.contains('plus-btn')) newQty += 1;
+                if (target.classList.contains('minus-btn')) newQty -= 1;
+
+                if (newQty <= 0) return;
+
+                const response = await fetch(`${CART_API_URL}${productId}/`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                    body: JSON.stringify({ quantity: newQty })
+                });
+                if (response.ok) renderCart(await response.json());
+            }
+
+            if (target.classList.contains('delete-btn')) {
+                if (confirm('Удалить товар из корзины?')) {
+                    const response = await fetch(`${CART_API_URL}${productId}/`, {
+                        method: 'DELETE',
+                        headers: { 'X-CSRFToken': csrfToken }
+                    });
+                    if (response.ok) renderCart(await response.json());
+                }
+            }
+
+            if (target.id === 'clear-cart-btn') {
+                if (confirm('Вы уверены, что хотите полностью очистить корзину?')) {
+                    const response = await fetch(`${CART_API_URL}clear/`, {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': csrfToken }
+                    });
+                    if (response.ok) renderCart(await response.json());
+                }
+            }
+
+            if (target.id === 'checkout-btn') {
+                const emailInput = document.getElementById('guest-email');
+                const phoneInput = document.getElementById('guest-phone');
+
+                const bodyData = {
+                    email: emailInput ? emailInput.value : null,
+                    phone: phoneInput ? phoneInput.value : null
+                };
+
+                const response = await fetch(`${CART_API_URL}checkout/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                    body: JSON.stringify(bodyData)
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert(`${result.message}\nНомер вашего заказа: №${result.order_id}\nСумма к оплате: ${result.total_price} руб.`);
+                    window.location.reload();
+                } else {
+                    alert(`Ошибка оформления: ${result.error || JSON.stringify(result)}`);
+                }
+            }
+        });
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    document.addEventListener('DOMContentLoaded', loadCart);
+</script>
+</body>
+</html>

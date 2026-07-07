@@ -23,6 +23,10 @@ INSTALLED_APPS = [
     'django_filters',
     'rest_framework_simplejwt',
 
+    'apps.orders',
+    'apps.products',
+    'apps.users',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -46,7 +50,9 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            BASE_DIR / 'apps' / 'templates',
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -99,3 +105,6 @@ AUTH_PASSWORD_VALIDATORS = [
 
 STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+STATICFILES_DIRS = [
+    BASE_DIR / 'apps' / 'static',
+]
