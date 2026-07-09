@@ -21,6 +21,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('apps.products.urls', namespace='products')),
     path('cart/', include('apps.orders.urls', namespace='orders')),
-    path('api/', include('apps.orders.api.urls', namespace='orders')),
-    path('api/', include('apps.products.api.urls', namespace='products')),
+    path('api/', include('apps.orders.api.urls', namespace='orders_api')),
+    path('api/', include('apps.products.api.urls', namespace='products_api')),
 ]
