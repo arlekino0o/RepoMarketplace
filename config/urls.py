@@ -19,8 +19,11 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    path('api/', include('apps.orders.api.urls', namespace='orders-api')),
+    path('api/', include('apps.products.api.urls', namespace='products-api')),
+
+    path('orders/', include('apps.orders.urls', namespace='orders')),
+
     path('', include('apps.products.urls', namespace='products')),
-    path('cart/', include('apps.orders.urls', namespace='orders')),
-    path('api/', include('apps.orders.api.urls', namespace='orders')),
-    path('api/', include('apps.products.api.urls', namespace='products')),
 ]

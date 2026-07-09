@@ -108,3 +108,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATICFILES_DIRS = [
     BASE_DIR / 'apps' / 'static',
 ]
+
+PAYMENT_PROVIDER_CLASS = 'apps.orders.services.payment.MockPaymentProvider'

@@ -1,16 +1,15 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, mixins
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from apps.products.models import Product
-
 from apps.orders.models import Order, OrderItem
 from apps.orders.api.serializers import OrderSerializer
 
 
-class OrderViewSet(viewsets.ModelViewSet):
+class CartViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
     queryset = Order.objects.all()
     permission_classes = [AllowAny]
@@ -84,10 +83,6 @@ class OrderViewSet(viewsets.ModelViewSet):
         if not cart.products.exists():
             return Response({"error": "Нельзя оформить пустую корзину."}, status=status.HTTP_400_BAD_REQUEST)
 
-        for item in cart.products.all():
-            item.price_at_purchase = item.product.price
-            item.save()
-
         cart.status = 'pending'
 
         if not request.user.is_authenticated:
@@ -103,3 +98,19 @@ class OrderViewSet(viewsets.ModelViewSet):
             "order_id": cart.pk,
             "total_price": cart.get_total_price()
         })
+
+
+class OrderViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    serializer_class = OrderSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return Order.objects.exclude(status='cart').filter(user=self.request.user)
+        else:
+            return Order.objects.exclude(status='cart').filter(session_key=self.request.session.session_key)
+
+    def list(self, request, *args, **kwargs):
+        orders = self.get_queryset()
+        serializer = self.get_serializer(orders, many=True)
+        return Response(serializer.data)

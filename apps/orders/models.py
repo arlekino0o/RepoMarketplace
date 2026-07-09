@@ -21,6 +21,8 @@ class Order(models.Model):
 
     email = models.EmailField(null=True, blank=True)
 
+    payment_id = models.CharField(null=True, blank=True)
+
     def get_total_price(self):
         return sum(item.get_cost() for item in self.items.all())
 

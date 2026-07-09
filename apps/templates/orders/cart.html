@@ -4,25 +4,31 @@
     <meta charset="UTF-8">
     <title>Моя Корзина</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 0 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background-color: #f4f4f4; }
-        .qty-btn { padding: 5px 10px; cursor: pointer; }
-        .delete-btn { color: red; cursor: pointer; background: none; border: none; font-weight: bold; }
-        .cart-summary { text-align: right; margin-top: 20px; font-size: 1.2em; font-weight: bold; }
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 0 10px; background-color: #f9fafb; color: #1f2937; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #edf2f7; }
+        th { background-color: #f4f4f4; font-weight: bold; }
+        .qty-btn { padding: 5px 12px; cursor: pointer; border: 1px solid #cbd5e1; background: white; border-radius: 4px; font-weight: bold; }
+        .qty-btn:hover { background: #f1f5f9; }
+        .delete-btn { color: #ef4444; cursor: pointer; background: none; border: none; font-weight: bold; }
+        .delete-btn:hover { text-decoration: underline; }
+        .cart-summary { text-align: right; margin-top: 20px; font-size: 1.3em; font-weight: bold; color: #2563eb; }
         .checkout-section { display: flex; justify-content: flex-end; gap: 15px; margin-top: 20px; }
-        .btn { padding: 10px 20px; font-size: 1em; cursor: pointer; border-radius: 4px; border: none; }
+        .btn { padding: 12px 24px; font-size: 1em; cursor: pointer; border-radius: 6px; border: none; font-weight: bold; transition: opacity 0.15s; }
+        .btn:hover { opacity: 0.9; }
         .btn-clear { background-color: #f44336; color: white; }
         .btn-checkout { background-color: #4CAF50; color: white; }
-        .guest-inputs { margin-top: 15px; display: flex; flex-direction: column; gap: 10px; max-width: 300px; }
-        .guest-inputs input { padding: 8px; font-size: 1em; }
+        .guest-inputs { margin-top: 20px; background: white; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; max-width: 355px; }
+        .guest-inputs h3 { margin-top: 0; margin-bottom: 10px; font-size: 1.1em; }
+        .guest-inputs input { width: 100%; padding: 10px; font-size: 1em; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
+        .back-link { color: #2563eb; text-decoration: none; font-weight: 500; }
+        .back-link:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
 
     <h1>Ваша корзина</h1>
-    <a href="{% url 'products:list' %}"><-Вернуться к покупкам</a>
+    <a href="{% url 'products:list' %}" class="back-link">← Вернуться к покупкам</a>
 
     <div id="cart-content">
         <p>Загрузка корзины...</p>
@@ -32,43 +38,54 @@
     const cartContent = document.getElementById('cart-content');
     const CART_API_URL = '/api/cart/';
 
+    let globalCartData = null;
+    let isProcessing = false;
+
     async function loadCart() {
         try {
             const response = await fetch(CART_API_URL);
-            if (!response.ok) throw new Error('Не удалось загрузить данные корзины');
+            if (!response.ok) throw new Error('Не удалось получить ответ от сервера');
 
-            const cartData = await response.json();
-            renderCart(cartData);
+            globalCartData = await response.json();
+            renderCart(globalCartData);
         } catch (error) {
-            console.error(error);
-            cartContent.innerHTML = '<p style="color: red;">Ошибка при загрузке корзины.</p>';
+            console.error('Ошибка загрузки корзины:', error);
+            cartContent.innerHTML = `<p style="color: red; font-weight: bold;">Ошибка загрузки корзины. Перезагрузите страницу.</p>`;
         }
     }
 
     function renderCart(cartData) {
-        if (!cartData.items || cartData.items.length === 0) {
+        if (!cartData || !cartData.items || cartData.items.length === 0) {
             cartContent.innerHTML = '<h3>Ваша корзина пуста :(</h3>';
             return;
         }
 
+        const sortedItems = [...cartData.items].sort((a, b) => a.product.id - b.product.id);
+
         let tableRows = '';
-        cartData.items.forEach(item => {
+        sortedItems.forEach(item => {
+            const price = parseFloat(item.product.price) || 0;
+            const cost = parseFloat(item.item_cost) || (price * item.quantity);
+
             tableRows += `
                 <tr>
                     <td>${item.product.name}</td>
-                    <td>${item.product.price} руб.</td>
+                    <td>${price.toLocaleString()} руб.</td>
                     <td>
-                        <button class="qty-btn minus-btn" data-id="${item.product.id}">-</button>
-                        <span style="margin: 0 10px; font-weight: bold;">${item.quantity}</span>
-                        <button class="qty-btn plus-btn" data-id="${item.product.id}">+</button>
+                        <!-- Добавили класс управления disabled через CSS, если идет запрос -->
+                        <button class="qty-btn minus-btn" data-id="${item.product.id}" ${isProcessing ? 'disabled' : ''}>-</button>
+                        <span style="margin: 0 10px; font-weight: bold; display: inline-block; min-width: 20px; text-align: center;">${item.quantity}</span>
+                        <button class="qty-btn plus-btn" data-id="${item.product.id}" ${isProcessing ? 'disabled' : ''}>+</button>
                     </td>
-                    <td>${item.item_cost} руб.</td>
+                    <td>${cost.toLocaleString()} руб.</td>
                     <td>
-                        <button class="delete-btn" data-id="${item.product.id}">Удалить</button>
+                        <button class="delete-btn" data-id="${item.product.id}" ${isProcessing ? 'disabled' : ''}>Удалить</button>
                     </td>
                 </tr>
             `;
         });
+
+        const totalCartPrice = parseFloat(cartData.total_price) || 0;
 
         cartContent.innerHTML = `
             <table>
@@ -86,88 +103,130 @@
                 </tbody>
             </table>
 
-            <div class="cart-summary">Общая стоимость: ${cartData.total_price} руб.</div>
+            <div class="cart-summary">Общая стоимость: ${totalCartPrice.toLocaleString()} руб.</div>
 
             <div class="guest-inputs" id="guest-form">
-                <h3>Контакты для оформления (для гостей)</h3>
-                <input type="email" id="guest-email" placeholder="Email" required>
-                <input type="tel" id="guest-phone" placeholder="Телефон" required>
+                <h3>Контакты для оформления</h3>
+                <input type="email" id="guest-email" placeholder="Введите ваш Email" required ${isProcessing ? 'disabled' : ''}>
             </div>
 
             <div class="checkout-section">
-                <button class="btn btn-clear" id="clear-cart-btn">Очистить корзину</button>
-                <button class="btn btn-checkout" id="checkout-btn">Оформить заказ</button>
+                <button class="btn btn-clear" id="clear-cart-btn" ${isProcessing ? 'disabled' : ''}>Очистить корзину</button>
+                <button class="btn btn-checkout" id="checkout-btn" ${isProcessing ? 'disabled' : ''}>Оформить заказ</button>
             </div>
         `;
-
-        initCartActions(cartData);
     }
 
-    function initCartActions(cartData) {
-
+    function initCartListeners() {
         cartContent.addEventListener('click', async (event) => {
             const target = event.target;
-            const productId = target.getAttribute('data-id');
             const csrfToken = getCookie('csrftoken');
 
-            if (target.classList.contains('plus-btn') || target.classList.contains('minus-btn')) {
-                const currentItem = cartData.items.find(item => item.product.id == productId);
-                let newQty = currentItem.quantity;
+            if (isProcessing) return;
 
+            if (target.classList.contains('plus-btn') || target.classList.contains('minus-btn')) {
+                const productId = target.getAttribute('data-id');
+                const currentItem = globalCartData.items.find(item => item.product.id == productId);
+                if (!currentItem) return;
+
+                let newQty = currentItem.quantity;
                 if (target.classList.contains('plus-btn')) newQty += 1;
                 if (target.classList.contains('minus-btn')) newQty -= 1;
 
                 if (newQty <= 0) return;
 
-                const response = await fetch(`${CART_API_URL}${productId}/`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-                    body: JSON.stringify({ quantity: newQty })
-                });
-                if (response.ok) renderCart(await response.json());
+                isProcessing = true;
+                renderCart(globalCartData);
+
+                try {
+                    const response = await fetch(`${CART_API_URL}${productId}/`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                        body: JSON.stringify({ quantity: newQty })
+                    });
+                    if (response.ok) {
+                        globalCartData = await response.json();
+                    }
+                } catch (err) {
+                    console.error(err);
+                } finally {
+                    isProcessing = false;
+                    renderCart(globalCartData);
+                }
             }
 
             if (target.classList.contains('delete-btn')) {
+                const productId = target.getAttribute('data-id');
                 if (confirm('Удалить товар из корзины?')) {
-                    const response = await fetch(`${CART_API_URL}${productId}/`, {
-                        method: 'DELETE',
-                        headers: { 'X-CSRFToken': csrfToken }
-                    });
-                    if (response.ok) renderCart(await response.json());
+                    isProcessing = true;
+                    try {
+                        const response = await fetch(`${CART_API_URL}${productId}/`, {
+                            method: 'DELETE',
+                            headers: { 'X-CSRFToken': csrfToken }
+                        });
+                        if (response.ok) {
+                            globalCartData = await response.json();
+                        }
+                    } catch (err) {
+                        console.error(err);
+                    } finally {
+                        isProcessing = false;
+                        renderCart(globalCartData);
+                    }
                 }
             }
 
             if (target.id === 'clear-cart-btn') {
                 if (confirm('Вы уверены, что хотите полностью очистить корзину?')) {
-                    const response = await fetch(`${CART_API_URL}clear/`, {
-                        method: 'POST',
-                        headers: { 'X-CSRFToken': csrfToken }
-                    });
-                    if (response.ok) renderCart(await response.json());
+                    isProcessing = true;
+                    try {
+                        const response = await fetch(`${CART_API_URL}clear/`, {
+                            method: 'POST',
+                            headers: { 'X-CSRFToken': csrfToken }
+                        });
+                        if (response.ok) {
+                            globalCartData = await response.json();
+                        }
+                    } catch (err) {
+                        console.error(err);
+                    } finally {
+                        isProcessing = false;
+                        renderCart(globalCartData);
+                    }
                 }
             }
 
             if (target.id === 'checkout-btn') {
                 const emailInput = document.getElementById('guest-email');
-                const phoneInput = document.getElementById('guest-phone');
+                if (emailInput && !emailInput.value.trim()) {
+                    alert('Пожалуйста, введите ваш Email.');
+                    return;
+                }
 
-                const bodyData = {
-                    email: emailInput ? emailInput.value : null,
-                    phone: phoneInput ? phoneInput.value : null
-                };
+                isProcessing = true;
+                const bodyData = { email: emailInput.value.trim() };
 
-                const response = await fetch(`${CART_API_URL}checkout/`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-                    body: JSON.stringify(bodyData)
-                });
+                try {
+                    const response = await fetch(`${CART_API_URL}checkout/`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                        body: JSON.stringify(bodyData)
+                    });
 
-                const result = await response.json();
-                if (response.ok) {
-                    alert(`${result.message}\nНомер вашего заказа: №${result.order_id}\nСумма к оплате: ${result.total_price} руб.`);
-                    window.location.reload();
-                } else {
-                    alert(`Ошибка оформления: ${result.error || JSON.stringify(result)}`);
+                    const result = await response.json();
+                    if (response.ok) {
+                        alert(`Заказ успешно оформлен!`);
+                        const paymentId = result.payment_id || '';
+                        window.location.href = `/orders/mock-payment-page/?order_id=${result.order_id}&payment_id=${paymentId}`;
+                    } else {
+                        alert(`Ошибка оформления: ${result.error || JSON.stringify(result)}`);
+                        isProcessing = false;
+                        renderCart(globalCartData);
+                    }
+                } catch (err) {
+                    console.error(err);
+                    isProcessing = false;
+                    renderCart(globalCartData);
                 }
             }
         });
@@ -188,7 +247,8 @@
         return cookieValue;
     }
 
-    document.addEventListener('DOMContentLoaded', loadCart);
+    document.addEventListener('DOMContentLoaded', () => {
+        initCartListeners();
+        loadCart();
+    });
 </script>
-</body>
-</html>
