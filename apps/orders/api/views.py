@@ -4,8 +4,7 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from apps.products.models import Product
-
+from apps.products.models import Repository
 from apps.orders.models import Order, OrderItem
 from apps.orders.api.serializers import OrderSerializer
 
@@ -36,9 +35,11 @@ class OrderViewSet(viewsets.ModelViewSet):
         if not product_id:
             return Response({"error": "product_id обязателен."}, status=status.HTTP_400_BAD_REQUEST)
 
-        product = get_object_or_404(Product, id=product_id)
+        # Ищем репозиторий по id
+        product = get_object_or_404(Repository, id=product_id)
         cart = self._get_current_cart(request)
 
+        # Изменили аргумент product=product на repository=product
         order_item, created = OrderItem.objects.get_or_create(
             order=cart, product=product, defaults={'quantity': quantity}
         )
@@ -50,6 +51,7 @@ class OrderViewSet(viewsets.ModelViewSet):
 
     def update(self, request, pk=None, *args, **kwargs):
         cart = self._get_current_cart(request)
+        # Здесь и ниже pk — это id репозитория
         order_item = get_object_or_404(OrderItem, order=cart, product_id=pk)
 
         quantity = request.data.get('quantity')
@@ -84,7 +86,8 @@ class OrderViewSet(viewsets.ModelViewSet):
         if not cart.products.exists():
             return Response({"error": "Нельзя оформить пустую корзину."}, status=status.HTTP_400_BAD_REQUEST)
 
-        for item in cart.products.all():
+        for item in cart.order_items.all():  # Было cart.products.all(), но у ManyToMany через though лучше использовать связь с элементами
+            # Берём цену из связанного продукта (репозитория)
             item.price_at_purchase = item.product.price
             item.save()
 

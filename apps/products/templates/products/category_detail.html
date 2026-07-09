@@ -1,0 +1,63 @@
+{# {% extends "base.html" %} #}
+{# {% block content %} #}
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Категория: {{ category.name }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light p-4">
+    <div class="container bg-white p-4 rounded shadow-sm">
+        <!-- Навигация обратно -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'products:category_list' %}">Все категории</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ category.name }}</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+            <div>
+                <h1 class="h2 mb-1">Репозитории в категории: {{ category.name }}</h1>
+                <p class="text-muted mb-0">Слаг для URL: <code>{{ category.slug }}</code></p>
+            </div>
+            <!-- Ссылка на редактирование -->
+            <a href="{% url 'products:category_update' slug=category.slug %}" class="btn btn-outline-secondary">
+                 Редактировать категорию
+            </a>
+            <a href="{% url 'products:category_delete' slug=category.slug %}" class="btn btn-outline-danger">
+             Удалить категорию
+            </a>
+        </div>
+
+        <h3 class="h5 mb-3">Доступные репозитории:</h3>
+        
+        {% if repositories %}
+            <div class="row row-cols-1 row-cols-md-2 g-4">
+                {% for repo in repositories %}
+                    <div class="col">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title text-primary">{{ repo.title }}</h5>
+                                <p class="card-text text-truncate">{{ repo.description|default:"Описание отсутствует" }}</p>
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <span class="badge {% if repo.is_commercial_license %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                                        {% if repo.is_commercial_license %}Коммерческая{% else %}Личная{% endif %} лицензия
+                                    </span>
+                                    <span class="fw-bold text-dark">{{ repo.price }} руб.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-warning">В этой категории пока нет ни одного репозитория.</div>
+        {% endif %}
+    </div>
+</body>
+</html>
+
+{# {% endblock %} #}

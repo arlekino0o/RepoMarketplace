@@ -1,6 +1,6 @@
 from rest_framework import generics
 from django_filters.rest_framework import DjangoFilterBackend
-from apps.products.models import Category, Product
+from apps.products.models import Category, Repository
 from .serializers import CategorySerializer, ProductSerializer
 
 
@@ -14,7 +14,7 @@ class CategoryListView(generics.ListAPIView):
 
 class ProductListView(generics.ListAPIView):
     """API-эндпоинт для получения списка товаров с фильтрацией по категории"""
-    queryset = Product.objects.all()
+    queryset = Repository.objects.all()
     serializer_class = ProductSerializer
     permission_classes = []
     
@@ -25,6 +25,6 @@ class ProductListView(generics.ListAPIView):
 
 class ProductDetailView(generics.RetrieveAPIView):
     """API-эндпоинт для просмотра конкретного товара по ID"""
-    queryset = Product.objects.all()
+    queryset = Repository.objects.all()
     serializer_class = ProductSerializer
     permission_classes = []

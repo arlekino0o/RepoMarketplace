@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from apps.products.models import Category, Product
+from apps.products.models import Category, Repository
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -15,7 +15,7 @@ class ProductSerializer(serializers.ModelSerializer):
     seller = serializers.StringRelatedField(read_only=True)
 
     class Meta:
-        model = Product
+        model = Repository
         fields = [
             'id', 
             'title', 

@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 
-from apps.products.models import Product
+from apps.products.models import Repository
 
 
 class Order(models.Model):
@@ -17,7 +17,7 @@ class Order(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='cart')
-    products = models.ManyToManyField(Product, through='OrderItem', related_name='orders')
+    products = models.ManyToManyField(Repository, through='OrderItem', related_name='orders')
 
     email = models.EmailField(null=True, blank=True)
 
@@ -27,7 +27,7 @@ class Order(models.Model):
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='order_items')
+    product = models.ForeignKey(Repository, on_delete=models.CASCADE, related_name='order_items')
     quantity = models.PositiveIntegerField(default=1)
     price_at_purchase = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 

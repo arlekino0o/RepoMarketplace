@@ -1,13 +1,13 @@
 from rest_framework import serializers
 
 from apps.orders.models import OrderItem
-from apps.products.models import Product
+from apps.products.models import Repository
 from apps.orders.models import Order
 
 
 class ProductShortSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Product
+        model = Repository
         fields = ['id', 'title', 'price']
 
 
