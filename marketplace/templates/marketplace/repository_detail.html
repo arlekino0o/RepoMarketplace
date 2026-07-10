@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}{{ repository.title }}{% endblock %}
+
+{% block content %}
+    <p><a href="{% url 'marketplace:repository_list' %}">&larr; Back to repositories</a></p>
+    <h1>{{ repository.title }}</h1>
+    <p>{{ repository.description|default:"No description provided." }}</p>
+    <ul>
+        <li>Seller: {{ repository.seller }}</li>
+        <li>Language: {{ repository.language }}</li>
+        <li>Price: {{ repository.price }}</li>
+        <li>Status: {{ repository.get_status_display }}</li>
+        <li>Repo URL: <a href="{{ repository.repo_url }}">{{ repository.repo_url }}</a></li>
+        <li>Created: {{ repository.created_at }}</li>
+    </ul>
+
+    <p>Categories:
+        {% for category in categories %}
+            {{ category.name }}{% if not forloop.last %}, {% endif %}
+        {% empty %}
+            None
+        {% endfor %}
+    </p>
+
+    <p><a class="btn" href="{% url 'marketplace:repository_update' repository.pk %}">Edit</a></p>
+{% endblock %}
