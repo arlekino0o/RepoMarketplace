@@ -1,0 +1,66 @@
+<footer class="footer">
+    <div class="container">
+        <div class="footer-content">
+            <div>
+                <h3>RepoMarketplace</h3>
+                <p>
+                    Ну чёто-чёто.
+                </p>
+            </div>
+
+            <div>
+                <h4>Навигация</h4>
+                <ul>
+                    <li>
+                        <a href="/">Главная</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'products:list' %}">
+                            Каталог
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'orders:cart' %}">
+                            Корзина
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div>
+                <h4>Аккаунт</h4>
+                <ul>
+                    {% if user.is_authenticated %}
+                        <li>
+                            <a href="{% url 'orders:orders' %}">
+                                Мои заказы
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'users:logout' %}">
+                                Выйти
+                            </a>
+                        </li>
+                    {% else %}
+                        <li>
+                            <a href="{% url 'users:login' %}">
+                                Войти
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="{% url 'users:register' %}">
+                                Регистрация
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>
+                © {% now "Y" %} RepoMarketplace. Все права защищены))).
+            </p>
+        </div>
+    </div>
+</footer>

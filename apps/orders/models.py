@@ -1,7 +1,7 @@
-from django.contrib.auth.models import User
 from django.db import models
 
 from apps.products.models import Product
+from config import settings
 
 
 class Order(models.Model):
@@ -12,7 +12,7 @@ class Order(models.Model):
         ('completed', 'Завершен'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders', null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders', null=True, blank=True)
     session_key = models.CharField(max_length=40, null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -20,6 +20,8 @@ class Order(models.Model):
     products = models.ManyToManyField(Product, through='OrderItem', related_name='orders')
 
     email = models.EmailField(null=True, blank=True)
+
+    payment_id = models.CharField(null=True, blank=True)
 
     def get_total_price(self):
         return sum(item.get_cost() for item in self.items.all())
