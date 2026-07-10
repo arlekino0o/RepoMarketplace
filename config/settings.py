@@ -20,13 +20,13 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
 
 # Application definition
 INSTALLED_APPS = [
+    'apps.users',
+    'apps.orders',
+    'apps.products',
+
     'rest_framework',
     'django_filters',
     'rest_framework_simplejwt',
-
-    'apps.orders',
-    'apps.products',
-    'apps.users',
 
     'django.contrib.admin',
     'django.contrib.auth',
