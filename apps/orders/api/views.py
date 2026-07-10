@@ -4,7 +4,7 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from apps.products.models import Product
+from apps.products.models import Repository
 from apps.orders.models import Order, OrderItem
 from apps.orders.api.serializers import OrderSerializer
 
@@ -35,7 +35,7 @@ class CartViewSet(viewsets.ModelViewSet):
         if not product_id:
             return Response({"error": "product_id обязателен."}, status=status.HTTP_400_BAD_REQUEST)
 
-        product = get_object_or_404(Product, id=product_id)
+        product = get_object_or_404(Repository, id=product_id)
         cart = self._get_current_cart(request)
 
         order_item, created = OrderItem.objects.get_or_create(

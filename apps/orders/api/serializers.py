@@ -1,23 +1,23 @@
 from rest_framework import serializers
 
 from apps.orders.models import OrderItem
-from apps.products.models import Product
+from apps.products.models import Repository
 from apps.orders.models import Order
 
 
-class ProductShortSerializer(serializers.ModelSerializer):
+class RepositoryShortSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Product
+        model = Repository
         fields = ['id', 'title', 'price']
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
-    product = ProductShortSerializer(read_only=True)
+    repository = RepositoryShortSerializer(read_only=True)
     item_cost = serializers.ReadOnlyField(source='get_cost')
 
     class Meta:
         model = OrderItem
-        fields = ['product', 'quantity', 'item_cost']
+        fields = ['repository', 'quantity', 'item_cost']
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -31,4 +31,4 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['id', 'user', 'status', 'items', 'total_price', 'created_at', 'payment_id', 'email']
+        fields = ['id', 'buyer_id', 'seller_id', 'status', 'items', 'total_price', 'created_at', 'payment_id', 'email']
