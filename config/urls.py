@@ -34,4 +34,7 @@ urlpatterns = [
     path('api/users/', include('apps.users.api.urls', namespace='users-api')),
 
     path('', include('apps.products.urls', namespace='products')),
+    path('cart/', include('apps.orders.urls', namespace='orders')),
+    path('api/', include('apps.orders.api.urls', namespace='orders_api')),
+    path('api/', include('apps.products.api.urls', namespace='products_api')),
 ]

@@ -7,7 +7,8 @@ from .serializers import CategorySerializer, ProductSerializer
 class CategoryListView(generics.ListAPIView):
     """API-эндпоинт для получения списка всех категорий"""
     queryset = Category.objects.all()
-    serializer_class = CategorySerializer  
+    serializer_serializer = CategorySerializer
+    #можно явно разрешить просмотр каталога всем:
     permission_classes = [] 
 
 
@@ -17,6 +18,7 @@ class ProductListView(generics.ListAPIView):
     serializer_class = ProductSerializer
     permission_classes = []
     
+    #Django REST Framework
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['category', 'seller']
 

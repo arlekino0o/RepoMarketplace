@@ -8,7 +8,7 @@ from apps.orders.models import Order
 class ProductShortSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ['id', 'name', 'price']
+        fields = ['id', 'title', 'price']
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
