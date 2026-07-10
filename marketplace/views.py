@@ -77,3 +77,45 @@ class RepositoryUpdateView(UpdateView):
 
     def get_success_url(self):
         return reverse_lazy('marketplace:repository_detail', kwargs={'pk': self.object.pk})
+
+
+from django.shortcuts import get_object_or_404
+
+from .forms import UserProfileForm
+from .models import User
+
+
+class UserProfileView(DetailView):
+    model = User
+    template_name = 'marketplace/user_detail.html'
+    context_object_name = 'profile_user'
+
+
+class UserProfileUpdateView(UpdateView):
+    model = User
+    form_class = UserProfileForm
+    template_name = 'marketplace/user_form.html'
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, 'Profile updated successfully.')
+        return response
+
+    def get_success_url(self):
+        return reverse_lazy('marketplace:user_detail', kwargs={'pk': self.object.pk})
+
+
+class UserRepositoryListView(ListView):
+    model = Repository
+    template_name = 'marketplace/user_repository_list.html'
+    context_object_name = 'repositories'
+    paginate_by = 12
+
+    def get_queryset(self):
+        self.owner = get_object_or_404(User, pk=self.kwargs['pk'])
+        return Repository.objects.filter(seller=self.owner).order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['owner'] = self.owner
+        return context

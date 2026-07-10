@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ owner.username }}'s repositories{% endblock %}
+
+{% block content %}
+    <p><a href="{% url 'marketplace:user_detail' owner.pk %}">&larr; Back to profile</a></p>
+    <h1>{{ owner.username }}'s repositories</h1>
+
+    {% for repository in repositories %}
+        <div class="card">
+            <h3><a href="{% url 'marketplace:repository_detail' repository.pk %}">{{ repository.title }}</a></h3>
+            <p>{{ repository.language }} &middot; {{ repository.price }} &middot; {{ repository.get_status_display }}</p>
+        </div>
+    {% empty %}
+        <p>No repositories yet.</p>
+    {% endfor %}
+
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+        {% endif %}
+        {% if page_obj %}
+            <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% endif %}
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">Next</a>
+        {% endif %}
+    </div>
+{% endblock %}

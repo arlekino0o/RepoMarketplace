@@ -42,3 +42,12 @@ class RepositoryForm(forms.ModelForm):
         for category in categories:
             if category.pk not in existing:
                 RepositoryCategory.objects.create(repository=repository, category=category)
+
+
+from .models import User
+
+
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'role', 'rating']
