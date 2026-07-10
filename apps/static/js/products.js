@@ -1,0 +1,113 @@
+const productHolder = document.getElementById('product-holder');
+const PRODUCTS_API_URL = '/api/products/';
+const CART_API_URL = '/api/cart/';
+
+async function loadProducts() {
+    try {
+        const response = await fetch(PRODUCTS_API_URL);
+        if (!response.ok) throw new Error('Ошибка при загрузке товаров');
+
+        const products = await response.json();
+
+        productHolder.innerHTML = '';
+
+        products.forEach(product => {
+            const productCard = document.createElement('div');
+            productCard.style.border = '1px solid #ccc';
+            productCard.style.margin = '10px';
+            productCard.style.padding = '10px';
+            productCard.style.borderRadius = '5px';
+
+            productCard.innerHTML = `
+                <h3>${product.name}</h3>
+                <p>Цена: ${product.price} руб.</p>
+                <div class="cart-controls">
+                    <button class="minus-btn" data-id="${product.id}">-</button>
+                    <span class="quantity-input" id="qty-${product.id}">1</span>
+                    <button class="plus-btn" data-id="${product.id}">+</button>
+                    <button class="add-to-cart-btn" data-id="${product.id}" style="margin-left: 10px;">
+                        Добавить в корзину
+                    </button>
+                </div>
+            `;
+
+            productHolder.appendChild(productCard);
+        });
+
+        initCartEventListeners();
+
+    } catch (error) {
+        console.error(error);
+        productHolder.innerHTML = '<p style="color: red;">Не удалось загрузить товары.</p>';
+    }
+}
+
+function initCartEventListeners() {
+    productHolder.addEventListener('click', async (event) => {
+        const target = event.target;
+        const productId = target.getAttribute('data-id');
+
+        if (!productId) return;
+
+        const qtyContainer = document.getElementById(`qty-${productId}`);
+        let currentQty = parseInt(qtyContainer.innerText);
+
+        if (target.classList.contains('plus-btn')) {
+            qtyContainer.innerText = currentQty + 1;
+        }
+
+        if (target.classList.contains('minus-btn')) {
+            if (currentQty > 1) {
+                qtyContainer.innerText = currentQty - 1;
+            }
+        }
+
+        if (target.classList.contains('add-to-cart-btn')) {
+            target.disabled = true;
+
+            try {
+                const response = await fetch(CART_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        product_id: parseInt(productId),
+                        quantity: currentQty
+                    })
+                });
+
+                if (response.status === 201) {
+                    alert('Товар успешно добавлен в корзину!');
+                    qtyContainer.innerText = 1;
+                } else {
+                    const errorData = await response.json();
+                    alert(`Ошибка: ${JSON.stringify(errorData)}`);
+                }
+            } catch (error) {
+                console.error('Ошибка сети:', error);
+                alert('Не удалось связаться с сервером.');
+            } finally {
+                target.disabled = false;
+            }
+        }
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+document.addEventListener('DOMContentLoaded', loadProducts);
