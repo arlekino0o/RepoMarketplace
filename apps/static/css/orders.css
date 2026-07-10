@@ -1,0 +1,104 @@
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.state-block {
+    text-align: center;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 20px;
+}
+.hidden { display: none !important; }
+#error-state { background-color: #fef2f2; color: #991b1b; border-color: #fca5a5; }
+#loading { color: #6b7280; font-style: italic; background: none; border: none; }
+
+.order-card {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 25px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.order-card.status-pending { border: 2px solid #fbbf24; box-shadow: 0 4px 6px -1px rgba(251, 191, 36, 0.1); }
+.order-card.status-paid { border: 1px solid #86efac; }
+.order-card.status-completed { border: 1px solid #e5e7eb; }
+
+.card-header {
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f3f4f6;
+}
+.status-pending .card-header { background-color: #fffbeb; }
+.status-paid .card-header { background-color: #f0fdf4; }
+.status-completed .card-header { background-color: #f9fafb; }
+
+.order-title { font-size: 18px; font-weight: 700; }
+.order-date { font-size: 12px; color: #9ca3af; margin-left: 10px; font-weight: normal; }
+
+/* Бейджи статусов */
+.badge {
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.badge-pending { background: #fef3c7; color: #92400e; }
+.badge-paid { background: #dcfce7; color: #166534; }
+.badge-completed { background: #dbeafe; color: #1e40af; }
+
+/* Список товаров */
+.card-body { padding: 15px 20px; }
+.item-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 14px;
+    border-bottom: 1px solid #f3f4f6;
+}
+.item-row:last-child { border-bottom: none; }
+.item-quantity { color: #9ca3af; margin-left: 6px; }
+.item-price { font-weight: 600; }
+
+/* Подвал с ценой */
+.card-footer {
+    padding: 15px 20px;
+    background: #f9fafb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #f3f4f6;
+}
+.total-label { font-size: 14px; color: #6b7280; }
+.total-price { font-size: 20px; font-weight: 800; color: #2563eb; }
+
+/* Кнопка оплаты */
+.payment-block {
+    padding: 12px 20px;
+    background: #fffbeb;
+    border-top: 1px solid #fef3c7;
+    display: flex;
+    justify-content: flex-end;
+}
+.btn-pay {
+    background-color: #d97706;
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    transition: background 0.15s;
+}
+.btn-pay:hover { background-color: #b45309; }

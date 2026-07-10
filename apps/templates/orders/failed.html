@@ -1,0 +1,55 @@
+{% block title %}
+    Ошибка оплаты - Маркетплейс
+{% endblock %}
+
+{% block extra_css%}
+<style>
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background-color: #f3f4f6;
+        color: #1f2937;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+    }
+    .card {
+        background: white;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        max-width: 400px;
+        width: 100%;
+    }
+    .icon {
+        font-size: 48px;
+        color: #ef4444;
+        margin-bottom: 20px;
+    }
+    h1 { font-size: 22px; margin-bottom: 10px; color: #111827; }
+    p { color: #6b7280; font-size: 14px; margin-bottom: 25px; line-height: 1.5; }
+    .btn {
+        display: inline-block;
+        background-color: #dc2626;
+        color: white;
+        text-decoration: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        transition: background 0.15s;
+    }
+    .btn:hover { background-color: #b91c1c; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="icon">✕</div>
+    <h1>Не удалось провести оплату</h1>
+    <p>Что-то пошло не так: возможно, на карте недостаточно средств или банк отклонил операцию. Попробуйте еще раз.</p>
+    <a href="/orders/" class="btn">Вернуться к заказам</a>
+</div>
+{% endblock %}

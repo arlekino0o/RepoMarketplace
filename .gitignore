@@ -19,7 +19,6 @@ venv/
 ENV/
 env/
 
-static/
 staticfiles/
 media/
 

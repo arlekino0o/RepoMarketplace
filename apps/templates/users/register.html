@@ -1,19 +1,17 @@
 {% extends "base.html" %}
 
 {% block title %}
-Вход
+Регистрация
 {% endblock %}
 
 {% block content %}
-
 <div class="form-card card">
     <h1 class="text-center mb-4">
-        Вход в аккаунт
+        Регистрация
     </h1>
 
     <form method="post">
         {% csrf_token %}
-
         {% if form.non_field_errors %}
             <div class="alert alert-danger">
                 {{ form.non_field_errors }}
@@ -21,13 +19,17 @@
         {% endif %}
 
         {% for field in form %}
-
             <div class="form-group">
                 <label for="{{ field.id_for_label }}">
                     {{ field.label }}
                 </label>
-
                 {{ field }}
+
+                {% if field.help_text %}
+                    <small class="mt-1">
+                        {{ field.help_text }}
+                    </small>
+                {% endif %}
 
                 {% if field.errors %}
                     <div class="mt-1">
@@ -40,21 +42,15 @@
                 {% endif %}
             </div>
         {% endfor %}
-
-        <button class="btn-primary mt-2" type="submit" style="width:100%;">
-            Войти
+        <button class="btn-primary mt-2" style="width:100%;" type="submit">
+            Создать аккаунт
         </button>
-
     </form>
-
     <p class="text-center mt-2">
-        Нет аккаунта?
-        <a href="{% url 'users:register' %}">
-            Зарегистрироваться
+        Уже зарегистрированы?
+        <a href="{% url 'users:login' %}">
+            Войти
         </a>
-
     </p>
-
 </div>
-
 {% endblock %}

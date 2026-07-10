@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/orders.css' %}">
+{% endblock %}
+
+{% block title %}
+Заказы
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>История заказов</h1>
+
+        <div id="loading" class="state-block">Загрузка ваших заказов...</div>
+        <div id="error-state" class="state-block hidden">Не удалось загрузить заказы. Пожалуйста, авторизуйтесь.</div>
+        <div id="empty-state" class="state-block hidden">У вас пока нет ни одного заказа.</div>
+
+        <div id="orders-container"></div>
+    </div>
+{% endblock %}
+
+
+{% block extra_js %}
+    <script src="{% static 'js/orders.js' %}"></script>
+{% endblock %}
