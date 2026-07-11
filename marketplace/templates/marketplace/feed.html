@@ -1,10 +1,25 @@
 {% extends "base.html" %}
 {% block title %}RepoMarketplace — лента{% endblock %}
 {% block content %}
-<section class="hero"><h1>Лента репозиториев</h1><p>Новые проекты от разработчиков сообщества.</p><a class="btn-primary mt-2" href="{% url 'marketplace:repository_list' %}">Открыть весь каталог</a></section>
-<section class="products-grid">
-{% for repository in repositories %}
-<article class="card product-card"><h3><a href="{% url 'marketplace:repository_detail' repository.pk %}">{{ repository.title }}</a></h3><p class="product-description">{{ repository.description|default:"Описание не добавлено."|truncatechars:140 }}</p><p>{{ repository.language }} · {{ repository.seller }}</p><div class="product-card-footer"><span class="product-price">{{ repository.price }}</span><a class="btn-outline" href="{% url 'marketplace:repository_detail' repository.pk %}">Открыть</a></div></article>
-{% empty %}<p>В ленте пока нет репозиториев.</p>{% endfor %}
+<section class="feed-header">
+    <div><p class="feed-kicker">Рекомендации</p><h1>Свежие репозитории</h1><p>Лента новых проектов от разработчиков сообщества.</p></div>
+    <a class="btn-outline" href="{% url 'marketplace:repository_list' %}">Весь каталог</a>
 </section>
+
+<section class="feed-list">
+{% for repository in repositories %}
+<article class="feed-card">
+    <div class="feed-cover"><span>{{ repository.language|upper|slice:":2" }}</span></div>
+    <div class="feed-content">
+        <div class="feed-meta"><span>{{ repository.language }}</span><span>·</span><span>{{ repository.created_at|date:"d.m.Y" }}</span></div>
+        <h2><a href="{% url 'marketplace:repository_detail' repository.pk %}">{{ repository.title }}</a></h2>
+        <p>{{ repository.description|default:"Автор пока не добавил описание проекта."|truncatechars:220 }}</p>
+        <div class="feed-tags">{% for link in repository.repository_categories.all %}<span>{{ link.category.name }}</span>{% endfor %}</div>
+        <div class="feed-footer"><div><strong>{{ repository.price }}</strong><small>от {{ repository.seller }}</small></div><a class="btn-primary" href="{% url 'marketplace:repository_detail' repository.pk %}">Смотреть</a></div>
+    </div>
+</article>
+{% empty %}<div class="card"><h2>Лента пока пуста</h2><p>Добавьте первый репозиторий, чтобы он появился здесь.</p></div>{% endfor %}
+</section>
+
+{% if page_obj.has_next %}<div class="feed-more"><a class="btn-outline" href="?page={{ page_obj.next_page_number }}">Показать ещё</a></div>{% endif %}
 {% endblock %}

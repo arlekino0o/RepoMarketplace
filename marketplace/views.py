@@ -49,7 +49,8 @@ class FeedView(ListView):
     model = Repository
     template_name = 'marketplace/feed.html'
     context_object_name = 'repositories'
-    queryset = Repository.objects.select_related('seller').filter(status=Repository.Status.ACTIVE).order_by('-created_at')[:12]
+    paginate_by = 8
+    queryset = Repository.objects.select_related('seller').prefetch_related('repository_categories__category').filter(status=Repository.Status.ACTIVE).order_by('-created_at')
 
 
 class RepositoryDetailView(DetailView):
