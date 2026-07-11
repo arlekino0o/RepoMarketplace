@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
-from . import views
+from marketplace import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,5 +25,3 @@ urlpatterns = [
     path('users/<int:pk>/edit/', views.UserProfileUpdateView.as_view(), name='user_update'),
     path('users/<int:pk>/repositories/', views.UserRepositoryListView.as_view(), name='user_repository_list'),
 ]
-
-

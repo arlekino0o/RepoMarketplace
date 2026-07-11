@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Messages{% endblock %}
+
+{% block content %}
+    <h1>Messages</h1>
+
+    {% if dialogs %}
+        {% for dialog in dialogs %}
+            <article class="card">
+                <h3>
+                    <a href="{% url 'marketplace:message_conversation' dialog.user.pk %}">{{ dialog.user }}</a>
+                </h3>
+                <p>{{ dialog.last_message.text|truncatechars:100 }}</p>
+                <small>{{ dialog.last_message.created_at|date:"d.m.Y H:i" }}</small>
+            </article>
+        {% endfor %}
+    {% else %}
+        <p>You do not have any messages yet.</p>
+    {% endif %}
+{% endblock %}
