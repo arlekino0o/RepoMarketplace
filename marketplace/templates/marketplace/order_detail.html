@@ -16,4 +16,7 @@
             <button class="btn" type="submit">Pay</button>
         </form>
     {% endif %}
+    {% if can_review %}
+        <p><a class="btn" href="{% url 'marketplace:review_create' order.pk %}">Leave a review</a></p>
+    {% endif %}
 {% endblock %}

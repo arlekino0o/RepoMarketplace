@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import Category, Message, Order, Repository, RepositoryCategory, User
+from .models import Category, Message, Order, Repository, RepositoryCategory, Review, User
 
 
 class MarketplaceFlowTests(TestCase):
@@ -61,6 +61,28 @@ class MarketplaceFlowTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue(
             Message.objects.filter(sender=self.buyer, receiver=self.seller, text='Hello').exists()
+        )
+
+    def test_paid_order_can_receive_one_review(self):
+        order = Order.objects.create(
+            buyer=self.buyer,
+            repository=self.repository,
+            price=self.repository.price,
+            status=Order.Status.PAID,
+        )
+
+        response = self.client.post(
+            reverse('marketplace:review_create', kwargs={'order_id': order.pk}),
+            {'rating': 5, 'comment': 'Useful repository.'},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Review.objects.filter(order=order, rating=5).exists())
+        self.assertEqual(
+            self.client.get(
+                reverse('marketplace:review_list', kwargs={'repository_id': self.repository.pk})
+            ).status_code,
+            200,
         )
 
 

@@ -8,8 +8,8 @@ from django.utils import timezone
 from django.views import View
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
-from .forms import CategoryForm, LoginForm, RegisterForm, RepositoryForm, UserProfileForm
-from .models import Category, Order, Payment, Repository, User
+from .forms import CategoryForm, LoginForm, RegisterForm, RepositoryForm, ReviewForm, UserProfileForm
+from .models import Category, Order, Payment, Repository, Review, User
 
 
 class RepositoryListView(ListView):
@@ -54,6 +54,7 @@ class RepositoryDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['categories'] = Category.objects.filter(repository_categories__repository=self.object)
+        context['reviews'] = Review.objects.filter(order__repository=self.object).select_related('order__buyer')
         return context
 
 
@@ -223,6 +224,14 @@ class OrderDetailView(LoginRequiredMixin, DetailView):
     def get_queryset(self):
         return Order.objects.filter(buyer=self.request.user).select_related('repository', 'payment')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['can_review'] = (
+            self.object.status == Order.Status.PAID
+            and not Review.objects.filter(order=self.object).exists()
+        )
+        return context
+
 
 class OrderCreateView(LoginRequiredMixin, View):
     def post(self, request, repository_id):
@@ -254,3 +263,47 @@ class PaymentCreateView(LoginRequiredMixin, View):
         order.save(update_fields=['status'])
         messages.success(request, 'Payment completed successfully.')
         return redirect('marketplace:order_detail', pk=order.pk)
+
+
+class ReviewListView(ListView):
+    model = Review
+    template_name = 'marketplace/review_list.html'
+    context_object_name = 'reviews'
+
+    def get_queryset(self):
+        self.repository = get_object_or_404(Repository, pk=self.kwargs['repository_id'])
+        return Review.objects.filter(order__repository=self.repository).select_related('order__buyer')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['repository'] = self.repository
+        return context
+
+
+class ReviewCreateView(LoginRequiredMixin, CreateView):
+    form_class = ReviewForm
+    template_name = 'marketplace/review_form.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.order = get_object_or_404(
+            Order,
+            pk=kwargs['order_id'],
+            buyer=request.user,
+            status=Order.Status.PAID,
+        )
+        if Review.objects.filter(order=self.order).exists():
+            raise Http404
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.instance.order = self.order
+        messages.success(self.request, 'Review created successfully.')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy('marketplace:repository_detail', kwargs={'pk': self.order.repository_id})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['order'] = self.order
+        return context
