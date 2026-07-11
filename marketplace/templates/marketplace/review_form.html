@@ -3,11 +3,12 @@
 {% block title %}Leave a review{% endblock %}
 
 {% block content %}
-    <p><a href="{% url 'marketplace:order_detail' order.pk %}">&larr; Back to order</a></p>
-    <h1>Review for {{ order.repository.title }}</h1>
+    <p><a href="{% url 'marketplace:order_detail' order.pk %}">&larr; К заказу</a></p>
+    <section class="auth-page"><div class="card form-card auth-card"><h1>Отзыв о {{ order.repository.title }}</h1>
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        <button class="btn" type="submit">Publish review</button>
+        <button class="btn-primary" type="submit">Опубликовать</button>
     </form>
+    </div></section>
 {% endblock %}

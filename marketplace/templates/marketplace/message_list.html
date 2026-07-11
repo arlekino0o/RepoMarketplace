@@ -3,8 +3,9 @@
 {% block title %}Messages{% endblock %}
 
 {% block content %}
-    <h1>Messages</h1>
+    <section class="products-header"><div><h1>Сообщения</h1><p class="products-count">Ваши последние диалоги</p></div></section>
 
+    <section class="orders-list">
     {% if dialogs %}
         {% for dialog in dialogs %}
             <article class="card">
@@ -16,6 +17,7 @@
             </article>
         {% endfor %}
     {% else %}
-        <p>You do not have any messages yet.</p>
+        <p>У вас пока нет сообщений.</p>
     {% endif %}
+    </section>
 {% endblock %}
