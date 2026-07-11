@@ -1,7 +1,9 @@
+import json
+
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -9,7 +11,7 @@ from django.views import View
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
 from .forms import CategoryForm, LoginForm, RegisterForm, RepositoryForm, ReviewForm, UserProfileForm
-from .models import Category, Order, Payment, Repository, Review, User
+from .models import Cart, CartItem, Category, Order, Payment, Repository, Review, User
 
 
 class RepositoryListView(ListView):
@@ -307,3 +309,85 @@ class ReviewCreateView(LoginRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         context['order'] = self.order
         return context
+
+
+def _get_cart(request):
+    if request.user.is_authenticated:
+        return Cart.objects.get_or_create(user=request.user)[0]
+    if not request.session.session_key:
+        request.session.create()
+    return Cart.objects.get_or_create(session_key=request.session.session_key)[0]
+
+
+def _cart_payload(cart):
+    items = [{'repository': {'id': item.repository_id, 'title': item.repository.title, 'price': str(item.repository.price)}, 'quantity': item.quantity, 'item_cost': str(item.get_cost())} for item in cart.items.select_related('repository')]
+    return {'items': items, 'total_price': str(cart.get_total_price())}
+
+
+def cart_page(request):
+    return render(request, 'marketplace/cart.html')
+
+
+def cart_api(request):
+    cart = _get_cart(request)
+    if request.method == 'GET':
+        return JsonResponse(_cart_payload(cart))
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    data = json.loads(request.body or '{}')
+    repository = get_object_or_404(Repository, pk=data.get('repository_id'), status=Repository.Status.ACTIVE)
+    quantity = max(1, int(data.get('quantity', 1)))
+    item, created = CartItem.objects.get_or_create(cart=cart, repository=repository, defaults={'quantity': quantity})
+    if not created:
+        item.quantity += quantity
+        item.save(update_fields=['quantity'])
+    return JsonResponse(_cart_payload(cart), status=201)
+
+
+def cart_item_api(request, repository_id):
+    cart = _get_cart(request)
+    item = get_object_or_404(CartItem, cart=cart, repository_id=repository_id)
+    if request.method == 'PATCH':
+        quantity = int(json.loads(request.body or '{}').get('quantity', 0))
+        if quantity < 1:
+            return JsonResponse({'error': 'Quantity must be positive'}, status=400)
+        item.quantity = quantity
+        item.save(update_fields=['quantity'])
+    elif request.method == 'DELETE':
+        item.delete()
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    return JsonResponse(_cart_payload(cart))
+
+
+def cart_clear_api(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    cart = _get_cart(request)
+    cart.items.all().delete()
+    return JsonResponse(_cart_payload(cart))
+
+
+def cart_checkout_api(request):
+    if request.method != 'POST' or not request.user.is_authenticated:
+        return JsonResponse({'error': 'Войдите в аккаунт для оформления.'}, status=403)
+    cart = _get_cart(request)
+    items = list(cart.items.select_related('repository'))
+    if not items:
+        return JsonResponse({'error': 'Нельзя оформить пустую корзину.'}, status=400)
+    orders = [Order.objects.create(buyer=request.user, repository=item.repository, price=item.repository.price, status=Order.Status.PENDING) for item in items]
+    cart.items.all().delete()
+    return JsonResponse({'order_id': orders[0].pk, 'order_ids': [order.pk for order in orders]})
+
+
+def cart_add(request, repository_id):
+    if request.method != 'POST':
+        raise Http404
+    repository = get_object_or_404(Repository, pk=repository_id, status=Repository.Status.ACTIVE)
+    cart = _get_cart(request)
+    item, created = CartItem.objects.get_or_create(cart=cart, repository=repository, defaults={'quantity': 1})
+    if not created:
+        item.quantity += 1
+        item.save(update_fields=['quantity'])
+    messages.success(request, 'Репозиторий добавлен в корзину.')
+    return redirect('marketplace:cart')
