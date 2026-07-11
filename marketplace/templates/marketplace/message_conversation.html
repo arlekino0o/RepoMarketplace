@@ -3,8 +3,8 @@
 {% block title %}Conversation with {{ other_user }}{% endblock %}
 
 {% block content %}
-    <p><a href="{% url 'marketplace:message_list' %}">&larr; Back to messages</a></p>
-    <h1>Conversation with {{ other_user }}</h1>
+    <p><a href="{% url 'marketplace:message_list' %}">&larr; К сообщениям</a></p>
+    <h1>Диалог с {{ other_user }}</h1>
 
     {% for message in conversation %}
         <article class="card">
@@ -16,13 +16,13 @@
             {% endif %}
         </article>
     {% empty %}
-        <p>Start the conversation with a message below.</p>
+        <p>Начните диалог сообщением ниже.</p>
     {% endfor %}
 
-    <h2>New message</h2>
-    <form method="post">
+    <h2>Новое сообщение</h2>
+    <form class="form-card" method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        <button class="btn" type="submit">Send</button>
+        <button class="btn-primary" type="submit">Отправить</button>
     </form>
 {% endblock %}
