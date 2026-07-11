@@ -1,48 +1,71 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}Repo Marketplace{% endblock %}</title>
-    <style>
-        body { font-family: sans-serif; max-width: 960px; margin: 2rem auto; padding: 0 1rem; color: #222; }
-        nav a { margin-right: 1rem; }
-        .messages { list-style: none; padding: 0; }
-        .messages li { padding: 0.5rem 1rem; margin-bottom: 0.5rem; background: #eef; border-radius: 4px; }
-        .card { border: 1px solid #ddd; border-radius: 6px; padding: 1rem; margin-bottom: 1rem; }
-        .card h3 { margin-top: 0; }
-        form p { margin: 0.75rem 0; }
-        label { display: block; font-weight: bold; margin-bottom: 0.25rem; }
-        .filters { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
-        .btn { display: inline-block; padding: 0.4rem 0.8rem; background: #333; color: #fff; text-decoration: none; border-radius: 4px; border: none; cursor: pointer; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}RepoMarketplace{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
-<nav>
-    <a href="{% url 'marketplace:repository_list' %}">Repositories</a>
-    <a href="{% url 'marketplace:category_list' %}">Categories</a>
-    {% if user.is_authenticated %}
-        <a href="{% url 'marketplace:order_list' %}">My orders</a>
-        <a href="{% url 'marketplace:user_detail' user.pk %}">Profile</a>
-    {% endif %}
-    <a href="{% url 'marketplace:message_list' %}">Messages</a>
-    {% if user.is_authenticated %}
-        <form method="post" action="{% url 'marketplace:logout' %}" style="display: inline;">
-            {% csrf_token %}
-            <button type="submit">Log out</button>
-        </form>
-    {% else %}
-        <a href="{% url 'marketplace:login' %}">Log in</a>
-        <a href="{% url 'marketplace:register' %}">Register</a>
-    {% endif %}
-</nav>
-<hr>
-{% if messages %}
-    <ul class="messages">
-        {% for message in messages %}
-            <li>{{ message }}</li>
-        {% endfor %}
-    </ul>
-{% endif %}
-{% block content %}{% endblock %}
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <a class="logo" href="{% url 'marketplace:repository_list' %}">RepoMarketplace</a>
+            <button class="menu-toggle" id="menuToggle" type="button" aria-label="Открыть меню">☰</button>
+            <div class="nav-links" id="navLinks">
+                <a href="{% url 'marketplace:repository_list' %}">Репозитории</a>
+                <a href="{% url 'marketplace:category_list' %}">Категории</a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'marketplace:order_list' %}">Заказы</a>
+                    <a href="{% url 'marketplace:message_list' %}">Сообщения</a>
+                    <a href="{% url 'marketplace:user_detail' user.pk %}">Профиль</a>
+                    <form method="post" action="{% url 'marketplace:logout' %}">
+                        {% csrf_token %}
+                        <button class="btn-outline" type="submit">Выйти</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'marketplace:login' %}">Войти</a>
+                    <a class="btn-primary" href="{% url 'marketplace:register' %}">Регистрация</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main class="page">
+        <div class="container">
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-content">
+            <div>
+                <h3>RepoMarketplace</h3>
+                <p>Маркетплейс репозиториев с заказами, сообщениями и отзывами.</p>
+            </div>
+            <div>
+                <h4>Разделы</h4>
+                <a href="{% url 'marketplace:repository_list' %}">Репозитории</a><br>
+                <a href="{% url 'marketplace:category_list' %}">Категории</a>
+            </div>
+        </div>
+        <div class="footer-bottom">© {% now "Y" %} RepoMarketplace</div>
+    </footer>
+
+    <script src="{% static 'js/navbar.js' %}"></script>
+    <script src="{% static 'js/forms.js' %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>
