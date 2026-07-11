@@ -9,13 +9,18 @@
 <section class="feed-list">
 {% for repository in repositories %}
 <article class="feed-card">
-    <div class="feed-cover"><span>{{ repository.language|upper|slice:":2" }}</span></div>
+    <a class="feed-cover" href="{% url 'marketplace:repository_detail' repository.pk %}" aria-label="Открыть {{ repository.title }}">
+        <span>{{ repository.language|upper|slice:":2" }}</span>
+        <small>{{ repository.language|default:"Repository" }}</small>
+    </a>
     <div class="feed-content">
-        <div class="feed-meta"><span>{{ repository.language }}</span><span>·</span><span>{{ repository.created_at|date:"d.m.Y" }}</span></div>
+        <div class="feed-meta"><span>Добавлен {{ repository.created_at|date:"d.m.Y" }}</span></div>
         <h2><a href="{% url 'marketplace:repository_detail' repository.pk %}">{{ repository.title }}</a></h2>
-        <p>{{ repository.description|default:"Автор пока не добавил описание проекта."|truncatechars:220 }}</p>
-        <div class="feed-tags">{% for link in repository.repository_categories.all %}<span>{{ link.category.name }}</span>{% endfor %}</div>
-        <div class="feed-footer"><div><strong>{{ repository.price }}</strong><small>от {{ repository.seller }}</small></div><a class="btn-primary" href="{% url 'marketplace:repository_detail' repository.pk %}">Смотреть</a></div>
+        <p class="feed-description">{{ repository.description|default:"Автор пока не добавил описание проекта."|truncatechars:130 }}</p>
+        <div class="feed-tags">
+            {% for link in repository.repository_categories.all|slice:":2" %}<span>{{ link.category.name }}</span>{% empty %}<span>{{ repository.language|default:"Проект" }}</span>{% endfor %}
+        </div>
+        <div class="feed-footer"><div><strong>{{ repository.price }} ₽</strong><small>Продавец: {{ repository.seller }}</small></div><a class="btn-primary" href="{% url 'marketplace:repository_detail' repository.pk %}">Подробнее</a></div>
     </div>
 </article>
 {% empty %}<div class="card"><h2>Лента пока пуста</h2><p>Добавьте первый репозиторий, чтобы он появился здесь.</p></div>{% endfor %}
