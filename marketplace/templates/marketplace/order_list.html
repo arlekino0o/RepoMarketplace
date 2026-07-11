@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}My orders{% endblock %}
+
+{% block content %}
+    <h1>My orders</h1>
+    {% for order in orders %}
+        <article class="card">
+            <h3><a href="{% url 'marketplace:order_detail' order.pk %}">Order #{{ order.pk }}</a></h3>
+            <p>{{ order.repository.title }} — {{ order.price }}</p>
+            <p>Status: {{ order.get_status_display }}</p>
+        </article>
+    {% empty %}
+        <p>You do not have any orders yet.</p>
+    {% endfor %}
+{% endblock %}

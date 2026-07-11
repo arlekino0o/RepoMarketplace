@@ -24,4 +24,10 @@
     </p>
 
     <p><a class="btn" href="{% url 'marketplace:repository_update' repository.pk %}">Edit</a></p>
+    {% if user.is_authenticated and user != repository.seller and repository.status == 'active' %}
+        <form method="post" action="{% url 'marketplace:order_create' repository.pk %}">
+            {% csrf_token %}
+            <button class="btn" type="submit">Buy repository</button>
+        </form>
+    {% endif %}
 {% endblock %}

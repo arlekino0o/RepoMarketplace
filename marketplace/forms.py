@@ -1,6 +1,7 @@
 from django import forms
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 
-from .models import Repository
+from .models import Category, Repository, User
 
 
 class RepositoryForm(forms.ModelForm):
@@ -44,10 +45,24 @@ class RepositoryForm(forms.ModelForm):
                 RepositoryCategory.objects.create(repository=repository, category=category)
 
 
-from .models import User
-
-
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['username', 'email', 'role', 'rating']
+
+
+class RegisterForm(UserCreationForm):
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'role']
+
+
+class LoginForm(AuthenticationForm):
+    username = forms.CharField(label='Username')
+    password = forms.CharField(label='Password', widget=forms.PasswordInput)
+
+
+class CategoryForm(forms.ModelForm):
+    class Meta:
+        model = Category
+        fields = ['name', 'slug']

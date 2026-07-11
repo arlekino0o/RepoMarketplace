@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Order #{{ order.pk }}{% endblock %}
+
+{% block content %}
+    <p><a href="{% url 'marketplace:order_list' %}">&larr; Back to orders</a></p>
+    <h1>Order #{{ order.pk }}</h1>
+    <p>Repository: <a href="{% url 'marketplace:repository_detail' order.repository.pk %}">{{ order.repository.title }}</a></p>
+    <p>Price: {{ order.price }}</p>
+    <p>Status: {{ order.get_status_display }}</p>
+    {% if order.payment %}
+        <p>Payment: {{ order.payment.get_status_display }}</p>
+    {% elif order.status == 'pending' %}
+        <form method="post" action="{% url 'marketplace:payment_create' order.pk %}">
+            {% csrf_token %}
+            <button class="btn" type="submit">Pay</button>
+        </form>
+    {% endif %}
+{% endblock %}

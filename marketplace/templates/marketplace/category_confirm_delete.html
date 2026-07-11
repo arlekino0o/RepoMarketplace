@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Delete category{% endblock %}
+
+{% block content %}
+    <h1>Delete {{ object.name }}?</h1>
+    <form method="post">
+        {% csrf_token %}
+        <button class="btn" type="submit">Delete</button>
+        <a href="{% url 'marketplace:category_detail' object.slug %}">Cancel</a>
+    </form>
+{% endblock %}
