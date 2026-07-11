@@ -85,6 +85,19 @@ class MarketplaceFlowTests(TestCase):
             200,
         )
 
+    def test_cart_api_creates_orders_at_checkout(self):
+        response = self.client.post(
+            reverse('marketplace:cart_api'),
+            data='{"repository_id": %d, "quantity": 2}' % self.repository.pk,
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json()['items'][0]['quantity'], 2)
+
+        response = self.client.post(reverse('marketplace:cart_checkout_api'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(Order.objects.filter(buyer=self.buyer, repository=self.repository).exists())
+
 
 class AuthenticationTests(TestCase):
     def test_register_creates_authenticated_user(self):

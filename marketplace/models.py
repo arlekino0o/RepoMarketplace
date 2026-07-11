@@ -103,6 +103,27 @@ class Payment(models.Model):
         return f'Payment for order #{self.order_id}'
 
 
+class Cart(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='carts')
+    session_key = models.CharField(max_length=40, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def get_total_price(self):
+        return sum(item.get_cost() for item in self.items.select_related('repository'))
+
+
+class CartItem(models.Model):
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
+    repository = models.ForeignKey(Repository, on_delete=models.CASCADE, related_name='cart_items')
+    quantity = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['cart', 'repository'], name='unique_cart_repository')]
+
+    def get_cost(self):
+        return self.repository.price * self.quantity
+
+
 class Review(models.Model):
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='review')
     rating = models.PositiveSmallIntegerField()

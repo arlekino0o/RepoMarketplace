@@ -19,6 +19,7 @@
             <div class="nav-links" id="navLinks">
                 <a href="{% url 'marketplace:repository_list' %}">Репозитории</a>
                 <a href="{% url 'marketplace:category_list' %}">Категории</a>
+                <a href="{% url 'marketplace:cart' %}">Корзина</a>
                 {% if user.is_authenticated %}
                     <a href="{% url 'marketplace:order_list' %}">Заказы</a>
                     <a href="{% url 'marketplace:message_list' %}">Сообщения</a>

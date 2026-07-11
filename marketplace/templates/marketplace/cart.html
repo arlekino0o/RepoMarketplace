@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% load static %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/orders.css' %}">{% endblock %}
+{% block title %}Корзина{% endblock %}
+{% block content %}<h1>Ваша корзина</h1><a href="{% url 'marketplace:repository_list' %}" class="back-link">← Вернуться к каталогу</a><div id="cart-content"><p>Загрузка корзины...</p></div>{% endblock %}
+{% block extra_js %}<script src="{% static 'js/cart.js' %}"></script>{% endblock %}
