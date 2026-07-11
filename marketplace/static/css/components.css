@@ -113,11 +113,13 @@
 
     justify-content:space-between;
 
+    gap:24px;
+
 }
 
 .logo{
 
-    font-size:24px;
+    font-size:22px;
 
     font-weight:700;
 
@@ -132,7 +134,7 @@
 
     align-items:center;
 
-    gap:28px;
+    gap:18px;
     justify-content:flex-end;
     min-width:0;
 
@@ -143,6 +145,8 @@
     color:var(--muted);
 
     font-weight:500;
+    white-space:nowrap;
+    font-size:14px;
 
 }
 
