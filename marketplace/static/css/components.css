@@ -122,6 +122,7 @@
     font-weight:700;
 
     color:var(--primary);
+    flex-shrink:0;
 
 }
 
@@ -132,6 +133,8 @@
     align-items:center;
 
     gap:28px;
+    justify-content:flex-end;
+    min-width:0;
 
 }
 
@@ -551,7 +554,7 @@ tbody tr:hover{
    MOBILE
 ====================================================== */
 
-@media(max-width:768px){
+@media(max-width:1050px){
 
     .menu-toggle{
 

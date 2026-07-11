@@ -5,6 +5,7 @@ from . import message_views, views
 app_name = 'marketplace'
 
 urlpatterns = [
+    path('', views.FeedView.as_view(), name='feed'),
     path('repositories/', views.RepositoryListView.as_view(), name='repository_list'),
     path('repositories/create/', views.RepositoryCreateView.as_view(), name='repository_create'),
     path('repositories/<int:pk>/', views.RepositoryDetailView.as_view(), name='repository_detail'),

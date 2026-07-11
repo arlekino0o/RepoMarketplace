@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}RepoMarketplace — лента{% endblock %}
+{% block content %}
+<section class="hero"><h1>Лента репозиториев</h1><p>Новые проекты от разработчиков сообщества.</p><a class="btn-primary mt-2" href="{% url 'marketplace:repository_list' %}">Открыть весь каталог</a></section>
+<section class="products-grid">
+{% for repository in repositories %}
+<article class="card product-card"><h3><a href="{% url 'marketplace:repository_detail' repository.pk %}">{{ repository.title }}</a></h3><p class="product-description">{{ repository.description|default:"Описание не добавлено."|truncatechars:140 }}</p><p>{{ repository.language }} · {{ repository.seller }}</p><div class="product-card-footer"><span class="product-price">{{ repository.price }}</span><a class="btn-outline" href="{% url 'marketplace:repository_detail' repository.pk %}">Открыть</a></div></article>
+{% empty %}<p>В ленте пока нет репозиториев.</p>{% endfor %}
+</section>
+{% endblock %}

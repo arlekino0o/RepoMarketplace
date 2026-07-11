@@ -45,6 +45,13 @@ class RepositoryListView(ListView):
         return context
 
 
+class FeedView(ListView):
+    model = Repository
+    template_name = 'marketplace/feed.html'
+    context_object_name = 'repositories'
+    queryset = Repository.objects.select_related('seller').filter(status=Repository.Status.ACTIVE).order_by('-created_at')[:12]
+
+
 class RepositoryDetailView(DetailView):
     model = Repository
     template_name = 'marketplace/repository_detail.html'
