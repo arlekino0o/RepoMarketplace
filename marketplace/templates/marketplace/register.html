@@ -3,10 +3,15 @@
 {% block title %}Register{% endblock %}
 
 {% block content %}
-    <h1>Register</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button class="btn" type="submit">Create account</button>
-    </form>
+    <section class="auth-page">
+        <div class="card form-card auth-card">
+            <div class="auth-logo"><h1>Регистрация</h1><p>Создайте аккаунт для работы с маркетплейсом.</p></div>
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button class="btn-primary" type="submit">Создать аккаунт</button>
+            </form>
+            <p class="auth-footer">Уже есть аккаунт? <a href="{% url 'marketplace:login' %}">Войти</a></p>
+        </div>
+    </section>
 {% endblock %}

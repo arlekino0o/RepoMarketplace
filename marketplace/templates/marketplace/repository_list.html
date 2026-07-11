@@ -3,10 +3,15 @@
 {% block title %}Repositories{% endblock %}
 
 {% block content %}
-    <h1>Repositories</h1>
-    <p><a class="btn" href="{% url 'marketplace:repository_create' %}">+ New repository</a></p>
+    <section class="products-header">
+        <div>
+            <h1>Репозитории</h1>
+            <p class="products-count">Найдите готовый проект или разместите свой.</p>
+        </div>
+        <a class="btn-primary" href="{% url 'marketplace:repository_create' %}">+ Добавить репозиторий</a>
+    </section>
 
-    <form class="filters" method="get">
+    <form class="form-card mb-4" method="get">
         <input type="text" name="q" placeholder="Search title" value="{{ request.GET.q }}">
         <input type="text" name="language" placeholder="Language" value="{{ request.GET.language }}">
         <select name="status">
@@ -21,18 +26,24 @@
                 <option value="{{ category.pk }}" {% if request.GET.category == category.pk|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
             {% endfor %}
         </select>
-        <button class="btn" type="submit">Filter</button>
+        <button class="btn-primary" type="submit">Фильтровать</button>
     </form>
 
+    <section class="products-grid">
     {% for repository in repositories %}
-        <div class="card">
+        <article class="card product-card">
             <h3><a href="{% url 'marketplace:repository_detail' repository.pk %}">{{ repository.title }}</a></h3>
-            <p>{{ repository.language }} &middot; {{ repository.price }} &middot; {{ repository.get_status_display }}</p>
+            <p class="product-description">{{ repository.language }} &middot; {{ repository.get_status_display }}</p>
             <p>Seller: {{ repository.seller }}</p>
-        </div>
+            <div class="product-card-footer">
+                <span class="product-price">{{ repository.price }}</span>
+                <a class="btn-outline" href="{% url 'marketplace:repository_detail' repository.pk %}">Открыть</a>
+            </div>
+        </article>
     {% empty %}
-        <p>No repositories found.</p>
+        <p>Репозитории пока не найдены.</p>
     {% endfor %}
+    </section>
 
     <div class="pagination">
         {% if page_obj.has_previous %}
