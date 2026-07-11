@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Categories{% endblock %}
+
+{% block content %}
+    <h1>Categories</h1>
+    {% if user.is_staff %}
+        <p><a class="btn" href="{% url 'marketplace:category_create' %}">Create category</a></p>
+    {% endif %}
+    {% for category in categories %}
+        <article class="card">
+            <h3><a href="{% url 'marketplace:category_detail' category.slug %}">{{ category.name }}</a></h3>
+        </article>
+    {% empty %}
+        <p>There are no categories yet.</p>
+    {% endfor %}
+{% endblock %}

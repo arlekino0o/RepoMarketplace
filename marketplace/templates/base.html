@@ -19,7 +19,21 @@
 <body>
 <nav>
     <a href="{% url 'marketplace:repository_list' %}">Repositories</a>
+    <a href="{% url 'marketplace:category_list' %}">Categories</a>
+    {% if user.is_authenticated %}
+        <a href="{% url 'marketplace:order_list' %}">My orders</a>
+        <a href="{% url 'marketplace:user_detail' user.pk %}">Profile</a>
+    {% endif %}
     <a href="{% url 'marketplace:message_list' %}">Messages</a>
+    {% if user.is_authenticated %}
+        <form method="post" action="{% url 'marketplace:logout' %}" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit">Log out</button>
+        </form>
+    {% else %}
+        <a href="{% url 'marketplace:login' %}">Log in</a>
+        <a href="{% url 'marketplace:register' %}">Register</a>
+    {% endif %}
 </nav>
 <hr>
 {% if messages %}

@@ -1,9 +1,15 @@
 from django.contrib import messages
+from django.contrib.auth import login, logout
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.http import Http404
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, DetailView, ListView, UpdateView
+from django.utils import timezone
+from django.views import View
+from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
-from .forms import RepositoryForm
-from .models import Category, Repository
+from .forms import CategoryForm, LoginForm, RegisterForm, RepositoryForm, UserProfileForm
+from .models import Category, Order, Payment, Repository, User
 
 
 class RepositoryListView(ListView):
@@ -79,12 +85,6 @@ class RepositoryUpdateView(UpdateView):
         return reverse_lazy('marketplace:repository_detail', kwargs={'pk': self.object.pk})
 
 
-from django.shortcuts import get_object_or_404
-
-from .forms import UserProfileForm
-from .models import User
-
-
 class UserProfileView(DetailView):
     model = User
     template_name = 'marketplace/user_detail.html'
@@ -107,7 +107,7 @@ class UserProfileUpdateView(UpdateView):
 
 class UserRepositoryListView(ListView):
     model = Repository
-    template_name = 'marketplace/user_repository_list.html'
+    template_name = 'marketplace/user_repository.html'
     context_object_name = 'repositories'
     paginate_by = 12
 
@@ -119,3 +119,138 @@ class UserRepositoryListView(ListView):
         context = super().get_context_data(**kwargs)
         context['owner'] = self.owner
         return context
+
+
+class RegisterView(View):
+    template_name = 'marketplace/register.html'
+
+    def get(self, request):
+        return render(request, self.template_name, {'form': RegisterForm()})
+
+    def post(self, request):
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('marketplace:repository_list')
+        return render(request, self.template_name, {'form': form})
+
+
+class LoginView(View):
+    template_name = 'marketplace/login.html'
+
+    def get(self, request):
+        return render(request, self.template_name, {'form': LoginForm()})
+
+    def post(self, request):
+        form = LoginForm(request, data=request.POST)
+        if form.is_valid():
+            login(request, form.get_user())
+            return redirect('marketplace:repository_list')
+        return render(request, self.template_name, {'form': form})
+
+
+class LogoutView(View):
+    def post(self, request):
+        logout(request)
+        return redirect('marketplace:login')
+
+
+class CategoryListView(ListView):
+    model = Category
+    template_name = 'marketplace/category_list.html'
+    context_object_name = 'categories'
+
+
+class CategoryDetailView(DetailView):
+    model = Category
+    template_name = 'marketplace/category_detail.html'
+    context_object_name = 'category'
+    slug_field = 'slug'
+    slug_url_kwarg = 'slug'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['repositories'] = Repository.objects.filter(
+            repository_categories__category=self.object
+        ).select_related('seller')
+        return context
+
+
+class StaffRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.is_staff
+
+
+class CategoryCreateView(StaffRequiredMixin, CreateView):
+    model = Category
+    form_class = CategoryForm
+    template_name = 'marketplace/category_form.html'
+    success_url = reverse_lazy('marketplace:category_list')
+
+
+class CategoryUpdateView(StaffRequiredMixin, UpdateView):
+    model = Category
+    form_class = CategoryForm
+    template_name = 'marketplace/category_form.html'
+    slug_field = 'slug'
+    slug_url_kwarg = 'slug'
+    success_url = reverse_lazy('marketplace:category_list')
+
+
+class CategoryDeleteView(StaffRequiredMixin, DeleteView):
+    model = Category
+    template_name = 'marketplace/category_confirm_delete.html'
+    slug_field = 'slug'
+    slug_url_kwarg = 'slug'
+    success_url = reverse_lazy('marketplace:category_list')
+
+
+class OrderListView(LoginRequiredMixin, ListView):
+    model = Order
+    template_name = 'marketplace/order_list.html'
+    context_object_name = 'orders'
+
+    def get_queryset(self):
+        return Order.objects.filter(buyer=self.request.user).select_related('repository', 'payment')
+
+
+class OrderDetailView(LoginRequiredMixin, DetailView):
+    model = Order
+    template_name = 'marketplace/order_detail.html'
+    context_object_name = 'order'
+
+    def get_queryset(self):
+        return Order.objects.filter(buyer=self.request.user).select_related('repository', 'payment')
+
+
+class OrderCreateView(LoginRequiredMixin, View):
+    def post(self, request, repository_id):
+        repository = get_object_or_404(Repository, pk=repository_id, status=Repository.Status.ACTIVE)
+        if repository.seller_id == request.user.id:
+            raise Http404
+
+        order = Order.objects.create(
+            buyer=request.user,
+            repository=repository,
+            price=repository.price,
+            status=Order.Status.PENDING,
+        )
+        messages.success(request, 'Order created. You can now complete payment.')
+        return redirect('marketplace:order_detail', pk=order.pk)
+
+
+class PaymentCreateView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        order = get_object_or_404(Order, pk=pk, buyer=request.user)
+        payment, _ = Payment.objects.get_or_create(
+            order=order,
+            defaults={'amount': order.price, 'method': 'mock', 'status': Payment.Status.PENDING},
+        )
+        payment.status = Payment.Status.SUCCESS
+        payment.paid_at = timezone.now()
+        payment.save()
+        order.status = Order.Status.PAID
+        order.save(update_fields=['status'])
+        messages.success(request, 'Payment completed successfully.')
+        return redirect('marketplace:order_detail', pk=order.pk)

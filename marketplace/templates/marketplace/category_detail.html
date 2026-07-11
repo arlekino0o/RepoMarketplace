@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}{{ category.name }}{% endblock %}
+
+{% block content %}
+    <p><a href="{% url 'marketplace:category_list' %}">&larr; Back to categories</a></p>
+    <h1>{{ category.name }}</h1>
+    {% if user.is_staff %}
+        <p>
+            <a class="btn" href="{% url 'marketplace:category_update' category.slug %}">Edit</a>
+            <a class="btn" href="{% url 'marketplace:category_delete' category.slug %}">Delete</a>
+        </p>
+    {% endif %}
+    <h2>Repositories</h2>
+    {% for repository in repositories %}
+        <article class="card">
+            <h3><a href="{% url 'marketplace:repository_detail' repository.pk %}">{{ repository.title }}</a></h3>
+            <p>{{ repository.description|default:"No description provided." }}</p>
+            <p>{{ repository.price }}</p>
+        </article>
+    {% empty %}
+        <p>There are no repositories in this category.</p>
+    {% endfor %}
+{% endblock %}

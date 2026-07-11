@@ -1,17 +1,15 @@
-from django.contrib.auth.hashers import check_password, make_password
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
-class User(models.Model):
+class User(AbstractUser):
     class Role(models.TextChoices):
         BUYER = 'buyer', 'Buyer'
         SELLER = 'seller', 'Seller'
         ADMIN = 'admin', 'Admin'
 
-    username = models.CharField(max_length=150, unique=True)
     email = models.EmailField(unique=True)
-    password_hash = models.CharField(max_length=255)
-    role = models.CharField(max_length=20, choices=Role.choices)
+    role = models.CharField(max_length=20, choices=Role.choices, default=Role.BUYER)
     rating = models.DecimalField(max_digits=3, decimal_places=2, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -20,13 +18,6 @@ class User(models.Model):
 
     def __str__(self):
         return self.username
-
-    def set_password(self, raw_password):
-        self.password_hash = make_password(raw_password)
-
-    def check_password(self, raw_password):
-        return check_password(raw_password, self.password_hash)
-
 
 class Repository(models.Model):
     class Status(models.TextChoices):
@@ -52,6 +43,7 @@ class Repository(models.Model):
 
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=100, unique=True)
 
     class Meta:
         db_table = 'categories'
@@ -76,6 +68,7 @@ class Order(models.Model):
     class Status(models.TextChoices):
         PENDING = 'pending', 'Pending'
         PAID = 'paid', 'Paid'
+        COMPLETED = 'completed', 'Completed'
         CANCELLED = 'cancelled', 'Cancelled'
 
     buyer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
