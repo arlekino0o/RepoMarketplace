@@ -1,0 +1,19 @@
+
+{% extends "base.html" %}
+
+{% block title %}{{ profile_user.username }}{% endblock %}
+
+{% block content %}
+    <h1>{{ profile_user.username }}</h1>
+    <ul>
+        <li>Email: {{ profile_user.email }}</li>
+        <li>Role: {{ profile_user.get_role_display }}</li>
+        <li>Rating: {{ profile_user.rating|default:"—" }}</li>
+        <li>Member since: {{ profile_user.created_at }}</li>
+    </ul>
+
+    <p>
+        <a class="btn" href="{% url 'marketplace:user_update' profile_user.pk %}">Edit profile</a>
+        <a class="btn" href="{% url 'marketplace:user_repository_list' profile_user.pk %}">View repositories</a>
+    </p>
+{% endblock %}

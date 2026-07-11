@@ -16,8 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from marketplace import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('marketplace.message_urls')),
+    path('', include('marketplace.urls')),
+    path('users/<int:pk>/', views.UserProfileView.as_view(), name='user_detail'),
+    path('users/<int:pk>/edit/', views.UserProfileUpdateView.as_view(), name='user_update'),
+    path('users/<int:pk>/repositories/', views.UserRepositoryListView.as_view(), name='user_repository_list'),
 ]

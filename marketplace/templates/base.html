@@ -18,10 +18,7 @@
 </head>
 <body>
 <nav>
-    {% url 'marketplace:repository_list' as repository_list_url %}
-    {% if repository_list_url %}
-        <a href="{{ repository_list_url }}">Repositories</a>
-    {% endif %}
+    <a href="{% url 'marketplace:repository_list' %}">Repositories</a>
     <a href="{% url 'marketplace:message_list' %}">Messages</a>
 </nav>
 <hr>

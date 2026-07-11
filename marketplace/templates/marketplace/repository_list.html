@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Repositories{% endblock %}
+
+{% block content %}
+    <h1>Repositories</h1>
+    <p><a class="btn" href="{% url 'marketplace:repository_create' %}">+ New repository</a></p>
+
+    <form class="filters" method="get">
+        <input type="text" name="q" placeholder="Search title" value="{{ request.GET.q }}">
+        <input type="text" name="language" placeholder="Language" value="{{ request.GET.language }}">
+        <select name="status">
+            <option value="">Any status</option>
+            {% for value, label in statuses %}
+                <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <select name="category">
+            <option value="">Any category</option>
+            {% for category in categories %}
+                <option value="{{ category.pk }}" {% if request.GET.category == category.pk|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+            {% endfor %}
+        </select>
+        <button class="btn" type="submit">Filter</button>
+    </form>
+
+    {% for repository in repositories %}
+        <div class="card">
+            <h3><a href="{% url 'marketplace:repository_detail' repository.pk %}">{{ repository.title }}</a></h3>
+            <p>{{ repository.language }} &middot; {{ repository.price }} &middot; {{ repository.get_status_display }}</p>
+            <p>Seller: {{ repository.seller }}</p>
+        </div>
+    {% empty %}
+        <p>No repositories found.</p>
+    {% endfor %}
+
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+        {% endif %}
+        {% if page_obj %}
+            <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% endif %}
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">Next</a>
+        {% endif %}
+    </div>
+{% endblock %}
