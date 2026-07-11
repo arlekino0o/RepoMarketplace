@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 
-from .models import Category, Repository, User
+from .models import Category, Repository, Review, User
 
 
 class RepositoryForm(forms.ModelForm):
@@ -66,3 +66,18 @@ class CategoryForm(forms.ModelForm):
     class Meta:
         model = Category
         fields = ['name', 'slug']
+
+
+class ReviewForm(forms.ModelForm):
+    class Meta:
+        model = Review
+        fields = ['rating', 'comment']
+        widgets = {
+            'comment': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Share your experience...'}),
+        }
+
+    def clean_rating(self):
+        rating = self.cleaned_data['rating']
+        if not 1 <= rating <= 5:
+            raise forms.ValidationError('Rating must be between 1 and 5.')
+        return rating

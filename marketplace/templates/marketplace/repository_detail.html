@@ -30,4 +30,16 @@
             <button class="btn" type="submit">Buy repository</button>
         </form>
     {% endif %}
+
+    <h2>Reviews</h2>
+    <p><a href="{% url 'marketplace:review_list' repository.pk %}">View all reviews</a></p>
+    {% for review in reviews %}
+        <article class="card">
+            <strong>{{ review.order.buyer }}</strong> — {{ review.rating }}/5
+            <p>{{ review.comment|default:"No comment provided." }}</p>
+            <small>{{ review.created_at|date:"d.m.Y H:i" }}</small>
+        </article>
+    {% empty %}
+        <p>There are no reviews yet.</p>
+    {% endfor %}
 {% endblock %}

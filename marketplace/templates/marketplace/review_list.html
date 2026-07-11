@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Reviews for {{ repository.title }}{% endblock %}
+
+{% block content %}
+    <p><a href="{% url 'marketplace:repository_detail' repository.pk %}">&larr; Back to repository</a></p>
+    <h1>Reviews for {{ repository.title }}</h1>
+    {% for review in reviews %}
+        <article class="card">
+            <strong>{{ review.order.buyer }}</strong> — {{ review.rating }}/5
+            <p>{{ review.comment|default:"No comment provided." }}</p>
+            <small>{{ review.created_at|date:"d.m.Y H:i" }}</small>
+        </article>
+    {% empty %}
+        <p>There are no reviews yet.</p>
+    {% endfor %}
+{% endblock %}
