@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block block_title %}Продать свой код — Django Shop{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/pages/forms.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-card card">
+        <header class="auth-logo">
+            <h1>Продать свой код</h1>
+            <p>Заполните спецификацию вашего программного продукта</p>
+        </header>
+
+        <form method="post" enctype="multipart/form-data" class="form-container">
+            {% csrf_token %}
+
+            {% for field in form %}
+                <div class="form-group">
+                    {% if field.field.widget.input_type == 'checkbox' %}
+                        <div class="checkbox-group">
+                            {{ field }}
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        </div>
+                    {% else %}
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        <div class="input-wrapper">
+                            {{ field }}
+                        </div>
+                    {% endif %}
+
+                    {% if field.help_text %}
+                        <small class="form-help" style="display: block; color: var(--muted); margin-top: 4px; font-size: 13px;">
+                            {{ field.help_text }}
+                        </small>
+                    {% endif %}
+
+                    {% if field.errors %}
+                        <div class="form-errors" style="color: #dc2626; font-size: 13px; margin-top: 6px; font-weight: 500;">
+                            {{ field.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    Опубликовать в магазине
+                </button>
+                <a href="{% url 'products:list' %}" class="btn btn-secondary">
+                    Отмена
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

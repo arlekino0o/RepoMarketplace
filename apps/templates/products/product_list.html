@@ -1,12 +1,44 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/components/tags.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pages/catalog.css' %}">
+{% endblock %}
 
 {% block title %}
 Товары
 {% endblock %}
 
 {% block content %}
+<div style="width: 100% !important; max-width: none !important; display: block !important;">
+    <div class="products-header">
+        <div style="position: relative; width: 80%; flex-grow: 1;">
+            <input
+                type="text"
+                id="product-search-input"
+                placeholder="Поиск скриптов и программ..."
+                style="width: 100%; height: 44px; padding: 10px 16px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 15px; outline: none; transition: border-color 0.2s;"
+            >
+        </div>
+        <span class="products-count" id="products-count-label"></span>
+    </div>
 
-<div id="product-holder">
+    <div id="product-holder">
+    </div>
+
 </div>
 
+<script>
+    const searchInput = document.getElementById('product-search-input');
+    if (searchInput) {
+        searchInput.addEventListener('focus', () => searchInput.style.borderColor = 'var(--primary)');
+        searchInput.addEventListener('blur', () => searchInput.style.borderColor = 'var(--border)');
+    }
+</script>
+{% endblock %}
+
+
+{% block extra_js %}
+<script src="{% static 'js/products.js' %}"></script>
 {% endblock %}
