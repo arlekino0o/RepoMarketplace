@@ -3,64 +3,65 @@
         <div class="footer-content">
             <div>
                 <h3>RepoMarketplace</h3>
-                <p>
-                    Ну чёто-чёто.
-                </p>
+                <p>Ну чёто-чёто.</p>
             </div>
 
             <div>
                 <h4>Навигация</h4>
                 <ul>
-                    <li>
-                        <a href="/">Главная</a>
-                    </li>
-                    <li>
-                        <a href="{% url 'products:list' %}">
-                            Каталог
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{% url 'orders:cart' %}">
-                            Корзина
-                        </a>
-                    </li>
+                    <li><a href="{% url 'products:list' %}">Каталог</a></li>
+                    <li><a href="{% url 'orders:cart' %}">Корзина</a></li>
                 </ul>
             </div>
+
             <div>
                 <h4>Аккаунт</h4>
                 <ul>
-                    {% if user.is_authenticated %}
-                        <li>
-                            <a href="{% url 'orders:orders' %}">
-                                Мои заказы
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'users:logout' %}">
-                                Выйти
-                            </a>
-                        </li>
-                    {% else %}
-                        <li>
-                            <a href="{% url 'users:login' %}">
-                                Войти
-                            </a>
-                        </li>
-
-                        <li>
-                            <a href="{% url 'users:register' %}">
-                                Регистрация
-                            </a>
-                        </li>
-                    {% endif %}
+                    <li class="js-auth-link" style="display: none;">
+                        <a href="{% url 'orders:orders' %}">Мои заказы</a>
+                    </li>
+                    <li class="js-auth-link" style="display: none;">
+                        <a href="#" id="js-footer-logout">Выйти</a>
+                    </li>
+                    <li class="js-guest-link" style="display: none;">
+                        <a href="{% url 'users:login' %}">Войти</a>
+                    </li>
+                    <li class="js-guest-link" style="display: none;">
+                        <a href="{% url 'users:register' %}">Регистрация</a>
+                    </li>
                 </ul>
             </div>
         </div>
 
         <div class="footer-bottom">
-            <p>
-                © {% now "Y" %} RepoMarketplace. Все права защищены))).
-            </p>
+            <p>© {% now "Y" %} RepoMarketplace. Все права защищены))).</p>
         </div>
     </div>
 </footer>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const isLoggedIn = !!localStorage.getItem('accessToken');
+
+        const authElements = document.querySelectorAll('footer .js-auth-link');
+        const guestElements = document.querySelectorAll('footer .js-guest-link');
+
+        if (isLoggedIn) {
+            authElements.forEach(el => el.style.display = 'list-item');
+            guestElements.forEach(el => el.style.display = 'none');
+        } else {
+            authElements.forEach(el => el.style.display = 'none');
+            guestElements.forEach(el => el.style.display = 'list-item');
+        }
+
+        const footerLogout = document.getElementById('js-footer-logout');
+        if (footerLogout) {
+            footerLogout.addEventListener('click', (e) => {
+                e.preventDefault();
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                window.location.reload();
+            });
+        }
+    });
+</script>
