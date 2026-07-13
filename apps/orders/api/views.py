@@ -35,15 +35,13 @@ class CartViewSet(viewsets.ViewSet):
         product = get_object_or_404(Product, id=product_id)
         cart = self._get_current_cart(request)
 
-        # Избавились от количества: товар либо создается, либо игнорируется, если уже в корзине
         OrderItem.objects.get_or_create(order=cart, product=product)
 
         return Response(OrderSerializer(cart).data, status=status.HTTP_201_CREATED)
 
     def destroy(self, request, pk=None, *args, **kwargs):
         cart = self._get_current_cart(request)
-        # Удаляем товар из корзины по id продукта (pk)
-        order_item = get_object_or_404(OrderItem, order=cart, product_id=pk)
+        order_item = get_object_or_404(OrderItem, order=cart, id=pk)
         order_item.delete()
 
         return Response(OrderSerializer(cart).data, status=status.HTTP_200_OK)

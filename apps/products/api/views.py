@@ -57,7 +57,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         url_path='download',
         permission_classes=[permissions.IsAuthenticated]
     )
-    def download(self, request):
+    def download(self, request, slug=None):
         product = self.get_object()
 
         is_seller = product.seller == request.user

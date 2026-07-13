@@ -190,10 +190,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (isProcessing) return;
 
                 isProcessing = true;
-                btn.disabled = true;
 
                 try {
-                    const response = await fetchWithAuth(`/api/cart/items/${btn.dataset.id}/`, {
+                    const response = await fetchWithAuth(`/api/cart/${btn.dataset.id}/`, {
                         method: 'DELETE'
                     });
 
