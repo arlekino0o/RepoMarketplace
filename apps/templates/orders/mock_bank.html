@@ -1,89 +1,168 @@
-{% extends "base.html" %}
 {% load static %}
-
-{% block title%}
-    Тестовый платежный шлюз - Маркетплейс
-{% endblock %}
-
-{% block extra_css %}
-<style>
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        background-color: #f3f4f6;
-        color: #1f2937;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        margin: 0;
-    }
-    .bank-container {
-        background: white;
-        padding: 30px;
-        border-radius: 12px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-        max-width: 450px;
-        width: 100%;
-        text-align: center;
-    }
-    h2 { margin-top: 0; color: #111827; font-size: 20px; }
-    .order-details {
-        background-color: #f9fafb;
-        padding: 15px;
-        border-radius: 8px;
-        margin: 20px 0;
-        text-align: left;
-        font-size: 14px;
-    }
-    .price { font-size: 24px; font-weight: 800; color: #2563eb; text-align: center; margin: 10px 0; }
-    .btn-group { display: flex; gap: 15px; justify-content: center; margin-top: 25px; }
-    .btn {
-        padding: 12px 20px;
-        border: none;
-        border-radius: 6px;
-        font-weight: 600;
-        cursor: pointer;
-        font-size: 14px;
-        flex: 1;
-        transition: opacity 0.15s;
-    }
-    .btn:hover { opacity: 0.9; }
-    .btn-success { background-color: #10b981; color: white; }
-    .btn-fail { background-color: #ef4444; color: white; }
-</style>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Тестовый платежный шлюз - Маркетплейс</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .bank-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+        }
+        h2 { margin-top: 0; color: #111827; font-size: 20px; }
+        .order-details {
+            background-color: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+            font-size: 14px;
+        }
+        .price { font-size: 24px; font-weight: 800; color: #2563eb; text-align: center; margin: 10px 0; }
+        .btn-group { display: flex; gap: 15px; justify-content: center; margin-top: 25px; }
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            flex: 1;
+            transition: opacity 0.15s;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn-success { background-color: #10b981; color: white; }
+        .btn-fail { background-color: #ef4444; color: white; }
+        .hidden { display: none !important; }
+    </style>
 </head>
-
 <body>
-{% block content %}
+
 <div class="bank-container">
     <h2>Имитация банковского шлюза</h2>
     <p style="color: #6b7280; font-size: 14px;">Тестовая среда маркетплейса</p>
 
-    <div class="order-details">
-        <div><strong>Заказ:</strong> №{{ order.id }}</div>
-        <div class="price">{{ order.get_total_price }} руб.</div>
-        <div style="font-size: 11px; color: #9ca3af; word-break: break-all; margin-top: 5px;">
-            <strong>ID транзакции:</strong> {{ payment_id }}
-        </div>
-    </div>
+    <p id="bank-loading" style="padding: 20px; font-weight: 500; color: #4b5563;">
+        Инициализация защищенного соединения с банком...
+    </p>
 
-    <form method="post" action="{% url 'orders:payment' %}">
-        {% csrf_token %}
-        <input type="hidden" name="order_id" value="{{ order.id }}">
+    <div id="bank-content" class="hidden">
+        <div class="order-details">
+            <div><strong>Заказ:</strong> №<span id="display-order-id"></span></div>
+            <div class="price"><span id="display-price">0</span> ₽</div>
+            <div style="font-size: 11px; color: #9ca3af; word-break: break-all; margin-top: 5px;">
+                <strong>ID транзакции:</strong> <span id="display-payment-id"></span>
+            </div>
+        </div>
 
         <div class="btn-group">
-            <button type="submit" name="action" value="success" class="btn btn-success">
-                Успешная оплата
-            </button>
-            <button type="submit" name="action" value="failed" class="btn btn-fail">
-                Отклонить платеж
-            </button>
+            <button id="btn-success" class="btn btn-success">Успешная оплата</button>
+            <button id="btn-failed" class="btn btn-fail">Отклонить платеж</button>
         </div>
-    </form>
+    </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
-    <script src="{% static 'js/payment.js' %}"></script>
-{% endblock %}
+<script src="{% static 'js/payment.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('order_id');
+
+    const loadingEl = document.getElementById('bank-loading');
+    const contentEl = document.getElementById('bank-content');
+
+    if (!orderId) {
+        loadingEl.textContent = 'Ошибка: Идентификатор заказа отсутствует в URL.';
+        loadingEl.style.color = '#ef4444';
+        return;
+    }
+
+    try {
+        const response = await fetchWithAuth(`/api/orders/${orderId}/initiate_payment/`, { method: 'GET' });
+
+        if (response && response.ok) {
+            const data = await response.json();
+
+            document.getElementById('display-order-id').textContent = data.order_id;
+            document.getElementById('display-price').textContent = data.total_price.toLocaleString();
+            document.getElementById('display-payment-id').textContent = data.payment_id;
+
+            loadingEl.classList.add('hidden');
+            contentEl.classList.remove('hidden');
+        } else {
+            const errData = await response.json();
+            loadingEl.textContent = errData.detail || 'Доступ к оплате заказа ограничен.';
+            loadingEl.style.color = '#ef4444';
+        }
+    } catch (err) {
+        console.error(err);
+        loadingEl.textContent = 'Ошибка платежного шлюза. Попробуйте обновить страницу.';
+        loadingEl.style.color = '#ef4444';
+    }
+
+    // 3. Обработчики отправки результата оплаты
+    document.getElementById('btn-success').addEventListener('click', () => submitPayment('success'));
+    document.getElementById('btn-failed').addEventListener('click', () => submitPayment('failed'));
+
+    async function submitPayment(actionType) {
+        // Блокируем кнопки для предотвращения двойных кликов
+        document.querySelectorAll('.btn').forEach(btn => btn.disabled = true);
+
+        try {
+            const response = await fetchWithAuth(`/api/orders/${orderId}/confirm_payment/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ action: actionType })
+            });
+
+            if (response && response.ok) {
+                const resData = await response.json();
+                // Делаем перенаправление на страницу успеха или неудачи по ответу бэкенда
+                window.location.href = resData.redirect_to;
+            } else {
+                alert('Ошибка фиксации статуса платежа сервером.');
+                document.querySelectorAll('.btn').forEach(btn => btn.disabled = false);
+            }
+        } catch (err) {
+            console.error(err);
+            document.querySelectorAll('.btn').forEach(btn => btn.disabled = false);
+        }
+    }
+});
+
+// Кусок вспомогательного кода для чтения CSRF Cookie (если его нет в payment.js)
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+</body>
+</html>

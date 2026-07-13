@@ -1,96 +1,46 @@
-class PaymentForm {
-
-    constructor() {
-
-        this.number =
-            document.querySelector(
-                "[name=card_number]"
-            );
-
-        this.owner =
-            document.querySelector(
-                "[name=card_name]"
-            );
-
-        this.expire =
-            document.querySelector(
-                "[name=expire]"
-            );
-
-        this.cvv =
-            document.querySelector(
-                "[name=cvv]"
-            );
-
-        this.init();
-
-    }
-
-    init() {
-
-        if (!this.number) {
-            return;
+async function refreshAccessToken() {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (!refreshToken) return null;
+    try {
+        const response = await fetch('/api/token/refresh/', { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh: refreshToken })
+        });
+        if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem('accessToken', data.access);
+            return data.access;
         }
-
-        this.number.addEventListener(
-            "input",
-            this.formatNumber
-        );
-
-        this.expire.addEventListener(
-            "input",
-            this.formatExpire
-        );
-
-        this.cvv.addEventListener(
-            "input",
-            this.limitCVV
-        );
-
+    } catch (err) {
+        console.error('Не удалось обновить JWT токен:', err);
     }
-
-    formatNumber(event) {
-
-        let value =
-            event.target.value.replace(/\D/g, "");
-
-        value =
-            value.match(/.{1,4}/g)?.join(" ") || "";
-
-        event.target.value = value;
-
-    }
-
-    formatExpire(event) {
-
-        let value =
-            event.target.value.replace(/\D/g, "");
-
-        if (value.length > 2) {
-
-            value =
-                value.slice(0, 2) +
-                "/" +
-                value.slice(2, 4);
-
-        }
-
-        event.target.value = value;
-
-    }
-
-    limitCVV(event) {
-
-        event.target.value =
-            event.target.value
-                .replace(/\D/g, "")
-                .slice(0, 3);
-
-    }
-
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    window.location.href = '/users/login/';
+    return null;
 }
 
-document.addEventListener(
-    "DOMContentLoaded",
-    () => new PaymentForm()
-);
+async function fetchWithAuth(url, options = {}) {
+    let token = localStorage.getItem('accessToken');
+    options.headers = options.headers || {};
+    
+    if (!token) {
+        window.location.href = '/users/login/'; 
+        return;
+    }
+
+    options.headers['Authorization'] = `Bearer ${token}`;
+    let response = await fetch(url, options);
+
+    if (response.status === 401) {
+        token = await refreshAccessToken();
+        if (token) {
+            options.headers['Authorization'] = `Bearer ${token}`;
+            response = await fetch(url, options); 
+        }
+    }
+    return response;
+}
+
+class PaymentForm {}

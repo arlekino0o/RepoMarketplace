@@ -1,3 +1,47 @@
+async function refreshAccessToken() {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (!refreshToken) return null;
+
+    try {
+        const response = await fetch('/api/token/refresh/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh: refreshToken })
+        });
+        if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem('accessToken', data.access);
+            return data.access;
+        }
+    } catch (err) {
+        console.error('Не удалось обновить JWT токен:', err);
+    }
+
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    return null;
+}
+
+async function fetchWithAuth(url, options = {}) {
+    let token = localStorage.getItem('accessToken');
+    options.headers = options.headers || {};
+
+    if (token) {
+        options.headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    let response = await fetch(url, options);
+
+    if (response.status === 401 && localStorage.getItem('refreshToken')) {
+        token = await refreshAccessToken();
+        if (token) {
+            options.headers['Authorization'] = `Bearer ${token}`;
+            response = await fetch(url, options);
+        }
+    }
+    return response;
+}
+
 const statusMap = {
     'pending': { text: 'Ожидает оплаты', cardClass: 'status-pending', badgeClass: 'badge-pending' },
     'paid': { text: 'Оплачен', cardClass: 'status-paid', badgeClass: 'badge-paid' },
@@ -17,14 +61,17 @@ async function fetchOrders() {
     const empty = document.getElementById('empty-state');
     const error = document.getElementById('error-state');
 
+    if (!container) return;
+
     try {
-        const response = await fetch('/api/orders/', { method: 'GET' });
+        const response = await fetchWithAuth('/api/orders/', { method: 'GET' });
         if (!response.ok) throw new Error();
 
         const orders = await response.json();
-        loading.classList.add('hidden');
-        if (orders.length === 0) {
-            empty.classList.remove('hidden');
+        if (loading) loading.classList.add('hidden');
+
+        if (!orders || orders.length === 0) {
+            if (empty) empty.classList.remove('hidden');
             return;
         }
 
@@ -33,11 +80,17 @@ async function fetchOrders() {
 
             let itemsHtml = '';
             order.items.forEach(item => {
-                const price = item.price_at_purchase ? item.price_at_purchase : item.product.price;
+                const price = parseFloat(item.price_at_purchase || item.product.price || 0);
+
+                const productTitle = item.product.title || 'Скрипт';
+                const productSlug = item.product.slug ? `/${item.product.slug}/` : '#';
+
                 itemsHtml += `
-                    <div class="item-row">
-                        <div>${item.product.name} <span class="item-quantity">x${item.quantity}</span></div>
-                        <div class="item-price">${(price * item.quantity).toLocaleString()} руб.</div>
+                    <div class="order-product-row">
+                        <div class="order-product-info">
+                            <a href="${productSlug}">${productTitle}</a>
+                        </div>
+                        <div class="order-product-price">${item.item_cost.toLocaleString()} руб.</div>
                     </div>
                 `;
             });
@@ -54,25 +107,33 @@ async function fetchOrders() {
             }
 
             const card = document.createElement('div');
+
             card.className = `order-card ${config.cardClass}`;
             card.innerHTML = `
-                <div class="card-header">
+                <div class="order-header">
                     <div class="order-title">Заказ №${order.id} <span class="order-date">${formatDate(order.created_at)}</span></div>
                     <span class="badge ${config.badgeClass}">${config.text}</span>
                 </div>
-                <div class="card-body">${itemsHtml}</div>
-                <div class="card-footer">
-                    <span class="total-label">Итого к оплате:</span>
-                    <span class="total-price">${parseFloat(order.total_price).toLocaleString()} руб.</span>
+
+                <div class="order-body">
+                    ${itemsHtml}
                 </div>
-                ${paymentBtn}
+
+                <div class="order-footer">
+                    <div class="order-total-block">
+                        <span class="total-label">Итого:</span>
+                        <span class="total-price">${parseFloat(order.total_price || 0).toLocaleString()} руб.</span>
+                    </div>
+                    ${paymentBtn}
+                </div>
             `;
             container.appendChild(card);
         });
 
     } catch (err) {
-        loading.classList.add('hidden');
-        error.classList.remove('hidden');
+        console.error(err);
+        if (loading) loading.classList.add('hidden');
+        if (error) error.classList.remove('hidden');
     }
 }
 

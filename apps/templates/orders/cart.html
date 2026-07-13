@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/pages/orders-cart.css' %}?v=1">
+{% endblock %}
+
+
 {% block title %}
     Корзина
 {% endblock %}
@@ -9,7 +14,7 @@
     <h1>Ваша корзина</h1>
     <a href="{% url 'products:list' %}" class="back-link">← Вернуться к покупкам</a>
 
-    <div id="cart-content">
+    <div id="product-holder">
         <p>Загрузка корзины...</p>
     </div>
 {% endblock %}
