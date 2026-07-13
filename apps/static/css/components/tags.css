@@ -1,0 +1,71 @@
+.tech-tag {
+    background-color: #e0f2fe;
+    color: #0369a1;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.license-tag {
+    background-color: #f3f4f6;
+    color: #4b5563;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.badge-cart { background-color: #f3f4f6; color: #1f2937; }
+.badge-pending { background-color: #fef3c7; color: #d97706; }
+.badge-paid { background-color: #dcfce7; color: #16a34a; }
+.badge-completed { background-color: #e0e7ff; color: #4338ca; }
+
+.product-rating-line {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #64748b;
+    margin: 8px 0;
+}
+
+.rating-stars-value {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #0f172a;
+    font-weight: 700;
+}
+
+.icon-star-gold {
+    color: #f59e0b;
+    display: inline-flex;
+    align-items: center;
+}
+
+.rating-reviews-count {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #64748b;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.rating-reviews-count:hover {
+    color: #2563eb;
+
+.icon-comment-gray {
+    color: #94a3b8;
+}

@@ -108,6 +108,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATICFILES_DIRS = [
     BASE_DIR / 'apps' / 'static',
@@ -116,9 +118,11 @@ STATICFILES_DIRS = [
 PAYMENT_PROVIDER_CLASS = 'apps.orders.services.payment.MockPaymentProvider'
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication', # For standard DRF tokens
+        'rest_framework_simplejwt.authentication.JWTAuthentication', # For SimpleJWT
+        'rest_framework.authentication.SessionAuthentication', # For browsable API/cookies
+    ],
 }
 
 SIMPLE_JWT = {
@@ -132,3 +136,6 @@ SIMPLE_JWT = {
 }
 
 AUTH_USER_MODEL = 'users.CustomUser'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
