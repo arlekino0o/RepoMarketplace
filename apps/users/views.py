@@ -22,12 +22,6 @@ class LoginView(View):
 
         return render(request,"users/login.html", {"form": form})
 
-class LogoutView(View):
-    def get(self, request):
-        logout(request)
-
-        return redirect("users:login")
-
 class RegisterView(View):
     def get(self, request):
         form = RegisterForm()

@@ -1,60 +1,86 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}
 Вход
 {% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/forms.css' %}">
+{% endblock %}
+
 {% block content %}
+<div class="auth-page">
+    <div class="auth-card card">
+        <h1 class="text-center mb-4" style="margin-top: 0; color: #0f172a;">
+            Вход в аккаунт
+        </h1>
 
-<div class="form-card card">
-    <h1 class="text-center mb-4">
-        Вход в аккаунт
-    </h1>
+        <form method="post" id="jwt-login-form">
+            {% csrf_token %}
 
-    <form method="post">
-        {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger" id="form-global-errors" style="background-color: #fef2f2; border: 1px solid #fee2e2; color: #991b1b; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
 
-        {% if form.non_field_errors %}
-            <div class="alert alert-danger">
-                {{ form.non_field_errors }}
-            </div>
-        {% endif %}
+            <div class="alert alert-danger" id="js-error-block" style="display: none; background-color: #fef2f2; border: 1px solid #fee2e2; color: #991b1b; padding: 12px; border-radius: 8px; margin-bottom: 16px;"></div>
 
-        {% for field in form %}
+            <div class="form-container">
 
-            <div class="form-group">
-                <label for="{{ field.id_for_label }}">
-                    {{ field.label }}
-                </label>
+                {% for field in form %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}">
+                            {{ field.label }}
+                        </label>
 
-                {{ field }}
+                        <div class="input-wrapper" id="wrapper-{{ field.name }}">
+                            {{ field }}
+                        </div>
 
-                {% if field.errors %}
-                    <div class="mt-1">
-                        {% for error in field.errors %}
-                            <small style="color:#dc2626;">
-                                {{ error }}
-                            </small><br>
-                        {% endfor %}
+                        <div class="field-errors-js" id="errors-{{ field.name }}" style="color: #dc2626; font-size: 13px; margin-top: 6px; font-weight: 500;">
+                            {% if field.errors %}
+                                {% for error in field.errors %}
+                                    <small>{{ error }}</small><br>
+                                Dad {% endfor %}
+                            {% endif %}
+                        </div>
                     </div>
-                {% endif %}
+                {% endfor %}
+
+                <div class="form-actions">
+                    <button class="btn btn-primary" type="submit">
+                        Войти
+                    </button>
+                </div>
+
             </div>
-        {% endfor %}
+        </form>
 
-        <button class="btn-primary mt-2" type="submit" style="width:100%;">
-            Войти
-        </button>
+        <p class="text-center" style="margin-top: 24px; color: #475569; font-size: 14px;">
+            Нет аккаунта?
+            <a href="{% url 'users:register' %}" style="color: var(--primary, #2563eb); font-weight: 600; text-decoration: none;">
+                Зарегистрироваться
+            </a>
+        </p>
 
-    </form>
-
-    <p class="text-center mt-2">
-        Нет аккаунта?
-        <a href="{% url 'users:register' %}">
-            Зарегистрироваться
-        </a>
-
-    </p>
-
+    </div>
 </div>
 
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('jwt-login-form');
+        if (form) {
+            // Находим все input элементы внутри формы (текст, пароли, почту)
+            form.querySelectorAll('input:not([type="checkbox"]):not([type="hidden"]):not([type="file"])').forEach(input => {
+                input.classList.add('form-control-input');
+            });
+        }
+    });
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/login.js' %}"></script>
 {% endblock %}
