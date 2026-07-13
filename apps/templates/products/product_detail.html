@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ product.title }} — Скрипты на Django Shop{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/components/tags.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pages/catalog.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pages/product-detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="product-detail-container">
+    <a href="{% url 'products:list' %}" class="back-link">← Вернуться в каталог</a>
+
+    <div class="product-detail-layout">
+        <main class="product-main-content">
+            <div class="product-detail-preview">
+                {% if product.preview_image %}
+                    <img src="{{ product.preview_image.url }}" alt="{{ product.title }}">
+                {% else %}
+                    <div class="code-placeholder">&lt;Code /&gt;</div>
+                {% endif %}
+                <div class="product-rating-line">
+                    <div class="rating-stars-value">
+                        <span class="icon-star-gold">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                        </span>
+                        <span>{{ product.get_average_rating }}</span>
+                    </div>
+
+                    <a href="#reviews-section" class="rating-reviews-count">
+                        <span class="icon-comment-gray">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        </span>
+                        <span>{{ product.get_reviews_count }} отзывов</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Метаданные для JS -->
+            <div id="product-seller-meta"
+                 data-seller-id="{{ product.seller.id }}"
+                 data-product-slug="{{ product.slug }}"
+                 data-product-id="{{ product.id }}"
+                 style="display: none;"></div>
+
+            <section class="readme-section">
+                <h2>Документация / README.md</h2>
+                <div class="readme-box card">
+                    {{ product.description }}
+                </div>
+            </section>
+
+            <!-- НАШ НОВЫЙ БЛОК: История версий и Ченджлоги -->
+            <section class="versions-history-section" style="margin-top: 40px;">
+                <h2>История обновлений и Changelog</h2>
+                <div class="card" style="display: grid; grid-template-columns: 200px 1fr; gap: 24px; padding: 24px; min-height: 250px;">
+
+                    <!-- Левая колонка: список версий -->
+                    <div id="versions-tabs-list" style="display: flex; flex-direction: column; gap: 8px; border-right: 1px solid var(--border); padding-right: 16px;">
+                        <p style="color: var(--muted); font-size: 14px;">Загрузка версий...</p>
+                    </div>
+
+                    <!-- Правая колонка: описание выбранной версии -->
+                    <div id="version-changelog-content" style="display: flex; flex-direction: column; gap: 12px;">
+                        <h3 id="selected-version-title" style="font-size: 18px; color: var(--text);">Выберите версию</h3>
+                        <div id="selected-version-text" style="color: var(--muted); font-size: 15px; line-height: 1.6; white-space: pre-wrap;">
+                            Здесь отобразится список изменений.
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+        </main>
+
+        <aside class="product-sidebar">
+            <!-- Динамический блок покупки / скачивания / обновления -->
+            <div id="sidebar-purchase-block">
+                <div class="price-box card">
+                    <span class="product-price">
+                        {% if product.price == 0 %}Free{% else %}{{ product.price }} ₽{% endif %}
+                    </span>
+
+                    <div id="action-holder-{{ product.id }}" class="action-holder" style="width: 100%;">
+                        {% if product.in_cart %}
+                            <div class="cart-management-panel">
+                                <a href="/orders/cart/" class="btn-in-cart" style="height: 50px;">
+                                    В корзине
+                                    <small class="btn-remove-cart" data-id="{{ product.id }}" style="cursor: pointer; display: block; margin-top: 2px;">
+                                        (удалить)
+                                    </small>
+                                </a>
+                            </div>
+                        {% else %}
+                            <button class="btn btn-primary add-to-cart-btn" data-id="{{ product.id }}" style="width: 100%; height: 50px; font-size: 16px; font-weight: 600;">
+                                Купить исходный код
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {% if product.demo_url or product.doc_url %}
+                <div class="secondary-actions card" style="padding: 20px; margin-top: 20px;">
+                    {% if product.demo_url %}
+                        <a href="{{ product.demo_url }}" target="_blank" class="btn btn-secondary" style="background-color: #0f172a;">
+                            Посмотреть Live Demo 🌐
+                        </a>
+                    {% endif %}
+                    {% if product.doc_url %}
+                        <a href="{{ product.doc_url }}" target="_blank" class="btn btn-secondary" style="background-color: #f1f5f9; color: #1e293b !important; border: 1px solid #cbd5e1;">
+                            Внешняя документация 📄
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <div class="product-specs card" style="padding: 24px; margin-top: 20px;">
+                <h4 style="margin-bottom: 14px; font-size: 16px; font-weight: 700;">Спецификация кода</h4>
+                <div class="specs-list">
+                    <div class="spec-item">
+                        <span class="spec-label">Технологии:</span>
+                        <span class="spec-value" style="color: #0369a1;">{{ product.tech_stack }}</span>
+                    </div>
+                    <div class="spec-item">
+                        <span class="spec-label">Лицензия:</span>
+                        <span class="spec-value">{{ product.get_license_type_display }}</span>
+                    </div>
+                    <div class="spec-item">
+                        <span class="spec-label">Категория:</span>
+                        <span class="spec-value">{{ product.category.name|default:"Без категории" }}</span>
+                    </div>
+                    <div class="spec-item">
+                        <span class="spec-label">Продавец:</span>
+                        <span class="spec-value">@{{ product.seller.username }}</span>
+                    </div>
+                    <div class="spec-item">
+                        <span class="spec-label">Релиз:</span>
+                        <span class="spec-value">{{ product.created_at|date:"d.m.Y" }}</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Раздел отзывов -->
+    <div class="reviews-section-wrapper" id="reviews-section" style="margin-top: 40px;">
+        <h2>Отзывы покупателей</h2>
+        <div id="review-form-container"></div>
+        <div id="reviews-list-container" class="reviews-list">
+            <p style="color: var(--muted);">Загрузка отзывов...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/products.js' %}"></script>
+    <script src="{% static 'js/reviews.js' %}"></script>
+{% endblock %}
